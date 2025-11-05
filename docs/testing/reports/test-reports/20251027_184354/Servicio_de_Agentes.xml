@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="7" skipped="0" tests="10" time="0.247" timestamp="2025-10-27T18:44:12.852184-05:00" hostname="gabo288.local"><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_generate_advice_by_category[mind-mente]" time="0.160"><failure message="assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">self = &lt;test_agents_service_integration.TestAdviceEndpoint object at 0x10ab2e210&gt;
+service_url = 'http://localhost:8080', wait_for_services = None
+trace_id = 'test-agents-54a3b0e2-bea2-4983-a476-22df23c91ab4'
+test_user_profile = {'age': 30, 'goals': ['reducir estrés', 'mejorar salud'], 'id': 'test-user-2091a4c8-ae55-42a4-9d30-7e8c525d6262', 'locale': 'es-CO', ...}
+category = 'mind', expected_dimension = 'mente'
+
+    @pytest.mark.parametrize(
+        "category,expected_dimension",
+        [
+            ("mind", "mente"),
+            ("body", "cuerpo"),
+            ("soul", "alma"),
+            ("holistic", "integral"),
+        ],
+    )
+    def test_generate_advice_by_category(
+        self,
+        service_url: str,
+        wait_for_services: None,
+        trace_id: str,
+        test_user_profile: dict[str, Any],
+        category: str,
+        expected_dimension: str,
+    ) -&gt; None:
+        """Valida la generación de recomendaciones para cada categoría."""
+        payload = {
+            "trace_id": f"{trace_id}-{category}",
+            "category": category,
+            "user_profile": test_user_profile,
+            "preferences": {
+                "focus": ["bienestar"],
+                "intensity_level": "medium",
+            },
+            "context": f"Necesito recomendaciones para mejorar mi {expected_dimension}.",
+        }
+    
+        response = requests.post(
+            f"{service_url}/api/v1/holistic/advice",
+            json=payload,
+            timeout=TEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code == 200
+E       assert 502 == 200
+E        +  where 502 = &lt;Response [502]&gt;.status_code
+
+tests/integration/test_agents_service_integration.py:116: AssertionError</failure></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_generate_advice_by_category[body-cuerpo]" time="0.002"><failure message="assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">self = &lt;test_agents_service_integration.TestAdviceEndpoint object at 0x10ab2e490&gt;
+service_url = 'http://localhost:8080', wait_for_services = None
+trace_id = 'test-agents-54a3b0e2-bea2-4983-a476-22df23c91ab4'
+test_user_profile = {'age': 30, 'goals': ['reducir estrés', 'mejorar salud'], 'id': 'test-user-2091a4c8-ae55-42a4-9d30-7e8c525d6262', 'locale': 'es-CO', ...}
+category = 'body', expected_dimension = 'cuerpo'
+
+    @pytest.mark.parametrize(
+        "category,expected_dimension",
+        [
+            ("mind", "mente"),
+            ("body", "cuerpo"),
+            ("soul", "alma"),
+            ("holistic", "integral"),
+        ],
+    )
+    def test_generate_advice_by_category(
+        self,
+        service_url: str,
+        wait_for_services: None,
+        trace_id: str,
+        test_user_profile: dict[str, Any],
+        category: str,
+        expected_dimension: str,
+    ) -&gt; None:
+        """Valida la generación de recomendaciones para cada categoría."""
+        payload = {
+            "trace_id": f"{trace_id}-{category}",
+            "category": category,
+            "user_profile": test_user_profile,
+            "preferences": {
+                "focus": ["bienestar"],
+                "intensity_level": "medium",
+            },
+            "context": f"Necesito recomendaciones para mejorar mi {expected_dimension}.",
+        }
+    
+        response = requests.post(
+            f"{service_url}/api/v1/holistic/advice",
+            json=payload,
+            timeout=TEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code == 200
+E       assert 502 == 200
+E        +  where 502 = &lt;Response [502]&gt;.status_code
+
+tests/integration/test_agents_service_integration.py:116: AssertionError</failure></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_generate_advice_by_category[soul-alma]" time="0.005"><failure message="assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">self = &lt;test_agents_service_integration.TestAdviceEndpoint object at 0x10ab32c40&gt;
+service_url = 'http://localhost:8080', wait_for_services = None
+trace_id = 'test-agents-54a3b0e2-bea2-4983-a476-22df23c91ab4'
+test_user_profile = {'age': 30, 'goals': ['reducir estrés', 'mejorar salud'], 'id': 'test-user-2091a4c8-ae55-42a4-9d30-7e8c525d6262', 'locale': 'es-CO', ...}
+category = 'soul', expected_dimension = 'alma'
+
+    @pytest.mark.parametrize(
+        "category,expected_dimension",
+        [
+            ("mind", "mente"),
+            ("body", "cuerpo"),
+            ("soul", "alma"),
+            ("holistic", "integral"),
+        ],
+    )
+    def test_generate_advice_by_category(
+        self,
+        service_url: str,
+        wait_for_services: None,
+        trace_id: str,
+        test_user_profile: dict[str, Any],
+        category: str,
+        expected_dimension: str,
+    ) -&gt; None:
+        """Valida la generación de recomendaciones para cada categoría."""
+        payload = {
+            "trace_id": f"{trace_id}-{category}",
+            "category": category,
+            "user_profile": test_user_profile,
+            "preferences": {
+                "focus": ["bienestar"],
+                "intensity_level": "medium",
+            },
+            "context": f"Necesito recomendaciones para mejorar mi {expected_dimension}.",
+        }
+    
+        response = requests.post(
+            f"{service_url}/api/v1/holistic/advice",
+            json=payload,
+            timeout=TEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code == 200
+E       assert 502 == 200
+E        +  where 502 = &lt;Response [502]&gt;.status_code
+
+tests/integration/test_agents_service_integration.py:116: AssertionError</failure></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_generate_advice_by_category[holistic-integral]" time="0.003"><failure message="assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">self = &lt;test_agents_service_integration.TestAdviceEndpoint object at 0x10ab33bb0&gt;
+service_url = 'http://localhost:8080', wait_for_services = None
+trace_id = 'test-agents-54a3b0e2-bea2-4983-a476-22df23c91ab4'
+test_user_profile = {'age': 30, 'goals': ['reducir estrés', 'mejorar salud'], 'id': 'test-user-2091a4c8-ae55-42a4-9d30-7e8c525d6262', 'locale': 'es-CO', ...}
+category = 'holistic', expected_dimension = 'integral'
+
+    @pytest.mark.parametrize(
+        "category,expected_dimension",
+        [
+            ("mind", "mente"),
+            ("body", "cuerpo"),
+            ("soul", "alma"),
+            ("holistic", "integral"),
+        ],
+    )
+    def test_generate_advice_by_category(
+        self,
+        service_url: str,
+        wait_for_services: None,
+        trace_id: str,
+        test_user_profile: dict[str, Any],
+        category: str,
+        expected_dimension: str,
+    ) -&gt; None:
+        """Valida la generación de recomendaciones para cada categoría."""
+        payload = {
+            "trace_id": f"{trace_id}-{category}",
+            "category": category,
+            "user_profile": test_user_profile,
+            "preferences": {
+                "focus": ["bienestar"],
+                "intensity_level": "medium",
+            },
+            "context": f"Necesito recomendaciones para mejorar mi {expected_dimension}.",
+        }
+    
+        response = requests.post(
+            f"{service_url}/api/v1/holistic/advice",
+            json=payload,
+            timeout=TEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code == 200
+E       assert 502 == 200
+E        +  where 502 = &lt;Response [502]&gt;.status_code
+
+tests/integration/test_agents_service_integration.py:116: AssertionError</failure></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_advice_with_spanish_category_aliases" time="0.002"><failure message="assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">self = &lt;test_agents_service_integration.TestAdviceEndpoint object at 0x10acb5fd0&gt;
+service_url = 'http://localhost:8080', wait_for_services = None
+trace_id = 'test-agents-54a3b0e2-bea2-4983-a476-22df23c91ab4'
+test_user_profile = {'age': 30, 'goals': ['reducir estrés', 'mejorar salud'], 'id': 'test-user-2091a4c8-ae55-42a4-9d30-7e8c525d6262', 'locale': 'es-CO', ...}
+
+    def test_advice_with_spanish_category_aliases(
+        self,
+        service_url: str,
+        wait_for_services: None,
+        trace_id: str,
+        test_user_profile: dict[str, Any],
+    ) -&gt; None:
+        """Valida que los aliases en español funcionan correctamente."""
+        spanish_categories = ["mente", "cuerpo", "alma", "holistico"]
+    
+        for category in spanish_categories:
+            payload = {
+                "trace_id": f"{trace_id}-{category}",
+                "category": category,
+                "user_profile": test_user_profile,
+            }
+    
+            response = requests.post(
+                f"{service_url}/api/v1/holistic/advice",
+                json=payload,
+                timeout=TEST_TIMEOUT,
+            )
+    
+&gt;           assert response.status_code == 200
+E           assert 502 == 200
+E            +  where 502 = &lt;Response [502]&gt;.status_code
+
+tests/integration/test_agents_service_integration.py:173: AssertionError</failure></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_advice_includes_vector_query_info" time="0.003"><failure message="assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">self = &lt;test_agents_service_integration.TestAdviceEndpoint object at 0x10ab4fdf0&gt;
+service_url = 'http://localhost:8080', wait_for_services = None
+trace_id = 'test-agents-54a3b0e2-bea2-4983-a476-22df23c91ab4'
+test_user_profile = {'age': 30, 'goals': ['reducir estrés', 'mejorar salud'], 'id': 'test-user-2091a4c8-ae55-42a4-9d30-7e8c525d6262', 'locale': 'es-CO', ...}
+
+    def test_advice_includes_vector_query_info(
+        self,
+        service_url: str,
+        wait_for_services: None,
+        trace_id: str,
+        test_user_profile: dict[str, Any],
+    ) -&gt; None:
+        """Valida que la respuesta incluye información de las consultas vectoriales."""
+        payload = {
+            "trace_id": f"{trace_id}-vector-info",
+            "category": "mind",
+            "user_profile": test_user_profile,
+            "context": "Necesito técnicas de meditación para principiantes.",
+        }
+    
+        response = requests.post(
+            f"{service_url}/api/v1/holistic/advice",
+            json=payload,
+            timeout=TEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code == 200
+E       assert 502 == 200
+E        +  where 502 = &lt;Response [502]&gt;.status_code
+
+tests/integration/test_agents_service_integration.py:198: AssertionError</failure></testcase><testcase classname="tests.integration.test_agents_service_integration.TestErrorHandling" name="test_unsupported_category_returns_422" time="0.001" /><testcase classname="tests.integration.test_agents_service_integration.TestErrorHandling" name="test_missing_required_fields_returns_422" time="0.002" /><testcase classname="tests.integration.test_agents_service_integration.TestErrorHandling" name="test_empty_user_profile_returns_422" time="0.001" /><testcase classname="tests.integration.test_agents_service_integration.TestPerformance" name="test_advice_latency_is_reasonable" time="0.001"><failure message="assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">self = &lt;test_agents_service_integration.TestPerformance object at 0x10ab2e990&gt;
+service_url = 'http://localhost:8080', wait_for_services = None
+trace_id = 'test-agents-54a3b0e2-bea2-4983-a476-22df23c91ab4'
+test_user_profile = {'age': 30, 'goals': ['reducir estrés', 'mejorar salud'], 'id': 'test-user-2091a4c8-ae55-42a4-9d30-7e8c525d6262', 'locale': 'es-CO', ...}
+
+    def test_advice_latency_is_reasonable(
+        self,
+        service_url: str,
+        wait_for_services: None,
+        trace_id: str,
+        test_user_profile: dict[str, Any],
+    ) -&gt; None:
+        """Valida que la latencia de generación es razonable."""
+        payload = {
+            "trace_id": f"{trace_id}-latency",
+            "category": "mind",
+            "user_profile": test_user_profile,
+            "context": "Técnicas rápidas de relajación.",
+        }
+    
+        start = time.perf_counter()
+        response = requests.post(
+            f"{service_url}/api/v1/holistic/advice",
+            json=payload,
+            timeout=TEST_TIMEOUT,
+        )
+        elapsed_ms = (time.perf_counter() - start) * 1000
+    
+&gt;       assert response.status_code == 200
+E       assert 502 == 200
+E        +  where 502 = &lt;Response [502]&gt;.status_code
+
+tests/integration/test_agents_service_integration.py:323: AssertionError</failure></testcase></testsuite></testsuites>

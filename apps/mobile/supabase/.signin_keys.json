@@ -1,0 +1,15 @@
+{
+    "use": "sig",
+    "ext": true,
+    "d": "VXFuGqwc_RLwtrbM8ORTFAtRQcMekeR2I67rqUPEcg8",
+    "x": "2orP78CP04KqRFaREg-A6FzCPgPqT_ZDNuj_AHshNPY",
+    "kid": "702629f5-1652-4661-ae94-6e6fec00616c",
+    "y": "TGzevRCKq_UoZlnYL8ruknXw_pVUGtzE2E7yY3MZjoA",
+    "alg": "ES256",
+    "key_ops": [
+        "sign",
+        "verify"
+    ],
+    "kty": "EC",
+    "crv": "P-256"
+}

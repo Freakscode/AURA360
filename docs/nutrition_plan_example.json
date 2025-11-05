@@ -1,0 +1,517 @@
+{
+  "title": "Plan Nutricional Personalizado - Reducción de Grasa",
+  "language": "es",
+  "issued_at": "2025-10-28",
+  "valid_until": "2026-01-28",
+  "is_active": true,
+  "plan_data": {
+    "plan": {
+      "title": "Plan Nutricional Personalizado - Reducción de Grasa",
+      "version": "1.0",
+      "issued_at": "2025-10-28",
+      "valid_until": "2026-01-28",
+      "language": "es",
+      "units": {
+        "mass": "kg",
+        "volume": "ml",
+        "energy": "kcal"
+      },
+      "source": {
+        "kind": "pdf",
+        "uri": "s3://nutrition-plans/user123/plan_octubre_2025.pdf",
+        "pages": [
+          {
+            "page": 1,
+            "section_hint": "Evaluación y Diagnóstico"
+          },
+          {
+            "page": 2,
+            "section_hint": "Plan de Comidas"
+          },
+          {
+            "page": 3,
+            "section_hint": "Tablas de Intercambio"
+          }
+        ],
+        "extracted_at": "2025-10-28T10:30:00Z",
+        "extractor": "nutrition-ai-v2.1"
+      }
+    },
+    "subject": {
+      "user_id": "uuid-del-usuario-aqui",
+      "name": "Juan Pérez García",
+      "demographics": {
+        "sex": "M",
+        "age_years": 32,
+        "height_cm": 175,
+        "weight_kg": 78
+      }
+    },
+    "assessment": {
+      "timeseries": [
+        {
+          "date": "2025-10-28",
+          "metrics": {
+            "bmi": 25.5,
+            "fat_percent": 18.5,
+            "muscle_mass_kg": 35.2,
+            "bone_mass_kg": 3.8,
+            "residual_mass_kg": 12.1,
+            "skinfolds_sum_mm": 85
+          },
+          "method_notes": "Bioimpedancia eléctrica Tanita BC-545N"
+        }
+      ],
+      "diagnoses": [
+        {
+          "label": "Sobrepeso leve",
+          "severity": "moderado",
+          "notes": "IMC entre 25-27, requiere ajuste calórico y actividad física"
+        },
+        {
+          "label": "Porcentaje de grasa elevado",
+          "severity": "leve",
+          "notes": "18.5% - objetivo: reducir a 15%"
+        }
+      ],
+      "goals": [
+        {
+          "target": "peso_kg",
+          "value": 72,
+          "unit": "kg",
+          "due_date": "2026-01-28"
+        },
+        {
+          "target": "grasa_corporal",
+          "value": 15,
+          "unit": "%",
+          "due_date": "2026-01-28"
+        },
+        {
+          "target": "masa_muscular",
+          "value": 36,
+          "unit": "kg",
+          "due_date": "2026-01-28"
+        }
+      ]
+    },
+    "directives": {
+      "weekly_frequency": {
+        "min_days_per_week": 6,
+        "notes": "Seguir el plan al menos 6 días consecutivos por semana para obtener resultados óptimos"
+      },
+      "conditional_allowances": [
+        {
+          "name": "cheat_meal",
+          "allowed": true,
+          "frequency": "1 por semana",
+          "conditions": "Solo si cumples 100% los otros 6 días y realizas tu actividad física programada"
+        }
+      ],
+      "restrictions": [
+        {
+          "target": "azúcares añadidos",
+          "rule": "forbidden",
+          "details": "Evitar completamente azúcares refinados, refrescos, dulces y postres"
+        },
+        {
+          "target": "sodio",
+          "rule": "limited",
+          "details": "Máximo 2300mg al día, evitar alimentos procesados altos en sal"
+        },
+        {
+          "target": "grasas trans",
+          "rule": "forbidden",
+          "details": "Eliminar completamente alimentos con grasas trans y aceites hidrogenados"
+        },
+        {
+          "target": "alcohol",
+          "rule": "limited",
+          "details": "Máximo 1 copa de vino tinto por semana, preferiblemente evitar durante el plan"
+        }
+      ],
+      "meals": [
+        {
+          "name": "Desayuno",
+          "time_window": "7:00-9:00",
+          "components": [
+            {
+              "group": "Harinas",
+              "quantity": {
+                "portions": 2,
+                "notes": "Preferir opciones integrales"
+              },
+              "must_present": true
+            },
+            {
+              "group": "Proteína",
+              "quantity": {
+                "portions": 1
+              },
+              "must_present": true
+            },
+            {
+              "group": "Fruta",
+              "quantity": {
+                "portions": 1
+              },
+              "must_present": false
+            },
+            {
+              "group": "Grasas",
+              "quantity": {
+                "portions": 1
+              },
+              "must_present": false
+            }
+          ],
+          "notes": "Desayuno completo y balanceado. Incluir siempre proteína para mayor saciedad."
+        },
+        {
+          "name": "Media Mañana",
+          "time_window": "10:00-11:00",
+          "components": [
+            {
+              "group": "Fruta",
+              "quantity": {
+                "portions": 1
+              },
+              "must_present": true
+            }
+          ],
+          "notes": "Snack ligero para mantener metabolismo activo"
+        },
+        {
+          "name": "Almuerzo",
+          "time_window": "13:00-15:00",
+          "components": [
+            {
+              "group": "Harinas",
+              "quantity": {
+                "portions": 2
+              },
+              "must_present": true
+            },
+            {
+              "group": "Proteína",
+              "quantity": {
+                "portions": 2
+              },
+              "must_present": true
+            },
+            {
+              "group": "Verduras",
+              "quantity": {
+                "value": 2,
+                "unit": "tazas"
+              },
+              "must_present": true
+            },
+            {
+              "group": "Grasas",
+              "quantity": {
+                "portions": 1
+              },
+              "must_present": true
+            }
+          ],
+          "notes": "Comida principal del día. Abundantes verduras y proteína magra."
+        },
+        {
+          "name": "Media Tarde",
+          "time_window": "16:00-17:00",
+          "components": [
+            {
+              "group": "Lácteos",
+              "quantity": {
+                "portions": 1
+              },
+              "must_present": true
+            },
+            {
+              "group": "Fruta",
+              "quantity": {
+                "portions": 1
+              },
+              "must_present": false
+            }
+          ],
+          "notes": "Snack para evitar llegar con hambre a la cena"
+        },
+        {
+          "name": "Cena",
+          "time_window": "19:00-21:00",
+          "components": [
+            {
+              "group": "Proteína",
+              "quantity": {
+                "portions": 2
+              },
+              "must_present": true
+            },
+            {
+              "group": "Verduras",
+              "quantity": {
+                "value": 2,
+                "unit": "tazas"
+              },
+              "must_present": true
+            },
+            {
+              "group": "Grasas",
+              "quantity": {
+                "portions": 1
+              },
+              "must_present": false
+            }
+          ],
+          "notes": "Cena ligera, rica en proteína y verduras. Evitar harinas por la noche."
+        }
+      ],
+      "substitutions": [
+        {
+          "group": "Harinas",
+          "items": [
+            {
+              "name": "Pan integral",
+              "grams": 60,
+              "portion_equiv": 1,
+              "notes": "2 rebanadas"
+            },
+            {
+              "name": "Avena",
+              "grams": 40,
+              "portion_equiv": 1
+            },
+            {
+              "name": "Tortilla de maíz",
+              "grams": 50,
+              "portion_equiv": 1,
+              "notes": "2 piezas"
+            },
+            {
+              "name": "Arroz integral cocido",
+              "grams": 120,
+              "portion_equiv": 1,
+              "notes": "1/2 taza"
+            },
+            {
+              "name": "Papa cocida",
+              "grams": 150,
+              "portion_equiv": 1,
+              "notes": "1 pieza mediana"
+            },
+            {
+              "name": "Camote",
+              "grams": 100,
+              "portion_equiv": 1
+            }
+          ]
+        },
+        {
+          "group": "Proteína",
+          "items": [
+            {
+              "name": "Pechuga de pollo sin piel",
+              "grams": 90,
+              "portion_equiv": 1
+            },
+            {
+              "name": "Huevo entero",
+              "grams": 60,
+              "portion_equiv": 1,
+              "notes": "1 pieza grande"
+            },
+            {
+              "name": "Atún en agua",
+              "grams": 75,
+              "portion_equiv": 1,
+              "notes": "1/2 lata"
+            },
+            {
+              "name": "Salmón",
+              "grams": 90,
+              "portion_equiv": 1
+            },
+            {
+              "name": "Carne magra de res",
+              "grams": 90,
+              "portion_equiv": 1
+            },
+            {
+              "name": "Pavo",
+              "grams": 90,
+              "portion_equiv": 1
+            },
+            {
+              "name": "Requesón bajo en grasa",
+              "grams": 120,
+              "portion_equiv": 1,
+              "notes": "1/2 taza"
+            }
+          ]
+        },
+        {
+          "group": "Verduras",
+          "items": [
+            {
+              "name": "Espinacas",
+              "grams": 100,
+              "notes": "Libre consumo"
+            },
+            {
+              "name": "Brócoli",
+              "grams": 100,
+              "notes": "Libre consumo"
+            },
+            {
+              "name": "Lechuga",
+              "grams": 100,
+              "notes": "Libre consumo"
+            },
+            {
+              "name": "Calabaza",
+              "grams": 100,
+              "notes": "Libre consumo"
+            },
+            {
+              "name": "Tomate",
+              "grams": 100,
+              "notes": "Libre consumo"
+            },
+            {
+              "name": "Pepino",
+              "grams": 100,
+              "notes": "Libre consumo"
+            }
+          ]
+        },
+        {
+          "group": "Fruta",
+          "items": [
+            {
+              "name": "Manzana",
+              "grams": 150,
+              "portion_equiv": 1,
+              "notes": "1 pieza mediana"
+            },
+            {
+              "name": "Plátano",
+              "grams": 100,
+              "portion_equiv": 1,
+              "notes": "1 pieza chica"
+            },
+            {
+              "name": "Naranja",
+              "grams": 200,
+              "portion_equiv": 1,
+              "notes": "1 pieza grande"
+            },
+            {
+              "name": "Fresas",
+              "grams": 150,
+              "portion_equiv": 1,
+              "notes": "1 taza"
+            },
+            {
+              "name": "Sandía",
+              "grams": 200,
+              "portion_equiv": 1,
+              "notes": "2 tazas en cubos"
+            }
+          ]
+        },
+        {
+          "group": "Lácteos",
+          "items": [
+            {
+              "name": "Leche descremada",
+              "grams": 240,
+              "portion_equiv": 1,
+              "notes": "1 taza"
+            },
+            {
+              "name": "Yogurt griego natural",
+              "grams": 170,
+              "portion_equiv": 1,
+              "notes": "Sin azúcar añadido"
+            },
+            {
+              "name": "Queso panela",
+              "grams": 40,
+              "portion_equiv": 1
+            }
+          ]
+        },
+        {
+          "group": "Grasas",
+          "items": [
+            {
+              "name": "Aceite de oliva",
+              "grams": 5,
+              "portion_equiv": 1,
+              "notes": "1 cucharadita"
+            },
+            {
+              "name": "Aguacate",
+              "grams": 30,
+              "portion_equiv": 1,
+              "notes": "1/4 pieza"
+            },
+            {
+              "name": "Almendras",
+              "grams": 15,
+              "portion_equiv": 1,
+              "notes": "10 piezas"
+            },
+            {
+              "name": "Nueces",
+              "grams": 15,
+              "portion_equiv": 1,
+              "notes": "4 mitades"
+            }
+          ]
+        }
+      ]
+    },
+    "supplements": [
+      {
+        "name": "Omega-3 (EPA + DHA)",
+        "dose": "1000mg",
+        "timing": "Con el almuerzo",
+        "notes": "Aceite de pescado de alta calidad, certificado libre de metales pesados"
+      },
+      {
+        "name": "Vitamina D3",
+        "dose": "2000 UI",
+        "timing": "Por la mañana con el desayuno",
+        "notes": "Especialmente importante en meses de invierno"
+      },
+      {
+        "name": "Probióticos",
+        "dose": "10 mil millones CFU",
+        "timing": "En ayunas o antes de dormir",
+        "notes": "Para mejorar salud intestinal y absorción de nutrientes"
+      }
+    ],
+    "recommendations": [
+      "Mantener hidratación adecuada: mínimo 2-3 litros de agua al día",
+      "Realizar actividad física moderada 4-5 días por semana (combinar cardio y fuerza)",
+      "Dormir 7-8 horas diarias para optimizar recuperación y metabolismo",
+      "Evitar alcohol completamente durante las primeras 4 semanas del plan",
+      "Preparar comidas con anticipación (meal prep) para facilitar adherencia",
+      "Masticar lentamente y comer sin distracciones (TV, celular)",
+      "Registrar todo lo que comes en la app para seguimiento preciso",
+      "Pesarte una vez por semana en las mismas condiciones (mañana, en ayunas)",
+      "Tomar fotografías de progreso cada 2 semanas",
+      "Consultar con tu nutriólogo antes de hacer cualquier cambio al plan"
+    ],
+    "activity_guidance": "Programa de actividad física recomendado:\n\n• Lunes, Miércoles, Viernes: Cardio moderado (correr, bicicleta, natación) 30-40 minutos. Mantener frecuencia cardíaca entre 60-70% de tu máximo.\n\n• Martes, Jueves: Entrenamiento de fuerza (pesas, bandas, peso corporal) 45-60 minutos. Trabajar todos los grupos musculares.\n\n• Todos los días: Caminar al menos 10,000 pasos diarios. Usar escaleras en lugar de elevador.\n\n• Fines de semana: Actividades recreativas (senderismo, deportes, natación).\n\nCalentamiento: 5-10 minutos antes de cada sesión.\nEstiramiento: 5-10 minutos después de cada sesión.",
+    "free_text": {
+      "diagnosis_raw": "Paciente masculino de 32 años que acude a consulta por sobrepeso. Presenta IMC de 25.5 (sobrepeso grado I) y porcentaje de grasa corporal de 18.5% (elevado para su edad y sexo). Composición corporal muestra masa muscular adecuada (35.2 kg) pero exceso de tejido adiposo. Sin antecedentes de enfermedades crónicas. Actividad física irregular. Hábitos alimentarios caracterizados por consumo elevado de alimentos procesados, azúcares simples y porciones descontroladas. Hidratación insuficiente. Patrón de sueño irregular (5-6 horas por noche). Objetivo principal: reducir grasa corporal preservando masa muscular, mejorar composición corporal y establecer hábitos alimentarios saludables a largo plazo.",
+      "instructions_raw": "El plan nutricional está diseñado para generar un déficit calórico moderado de aproximadamente 500 kcal/día, lo que resultará en una pérdida de peso gradual y sostenible de 0.5-1 kg por semana. La distribución de macronutrientes está optimizada para preservar masa muscular: proteína 30%, carbohidratos 40%, grasas 30%. Se enfatiza el consumo de alimentos integrales, proteína de alta calidad en cada comida, carbohidratos complejos de bajo índice glucémico, grasas saludables (omega-3, monoinsaturadas) y abundantes vegetales para saciedad y aporte de micronutrientes. Las 5 comidas diarias mantienen el metabolismo activo y evitan episodios de hambre excesiva. La flexibilidad del sistema de intercambios permite variedad mientras se mantiene el balance nutricional. Es fundamental combinar el plan con ejercicio regular para maximizar la pérdida de grasa y preservar/aumentar masa muscular.",
+      "notes_raw": "Seguimiento programado:\n- Semana 2: Revisión de adherencia y ajustes menores\n- Semana 4: Evaluación de progreso, mediciones antropométricas\n- Semana 8: Bioimpedancia completa, ajuste de plan según resultados\n- Semana 12: Evaluación final, establecimiento de plan de mantenimiento\n\nEl paciente mostró alta motivación durante la consulta. Se le proporcionó material educativo sobre lectura de etiquetas nutricionales y preparación de comidas saludables. Se estableció comunicación vía WhatsApp para dudas y motivación continua. Importante: si experimenta fatiga excesiva, mareos o cualquier síntoma inusual, contactar inmediatamente para ajuste del plan."
+    }
+  }
+}
+

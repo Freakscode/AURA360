@@ -1,0 +1,279 @@
+// ============================================
+// Badges Component Styles
+// ============================================
+
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// --------------------------------------------
+// Base Badge
+// --------------------------------------------
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-1;
+  padding: $badge-padding-y $badge-padding-x;
+  font-size: $badge-font-size;
+  font-weight: $font-weight-semibold;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: $badge-border-radius;
+  border: 1px solid transparent;
+  transition: $transition-all;
+
+  // Icon support
+  svg {
+    width: 0.875em;
+    height: 0.875em;
+  }
+}
+
+// --------------------------------------------
+// Badge Variants
+// --------------------------------------------
+
+// Primary
+.badge--primary {
+  background-color: $color-primary-100;
+  color: $color-primary-900;
+  border-color: $color-primary-200;
+}
+
+// Secondary
+.badge--secondary {
+  background-color: $color-gray-100;
+  color: $color-gray-900;
+  border-color: $color-gray-200;
+}
+
+// Success
+.badge--success {
+  background-color: $color-success-100;
+  color: $color-success-900;
+  border-color: $color-success-200;
+}
+
+// Warning
+.badge--warning {
+  background-color: $color-warning-100;
+  color: $color-warning-900;
+  border-color: $color-warning-200;
+}
+
+// Error/Danger
+.badge--error,
+.badge--danger {
+  background-color: $color-error-100;
+  color: $color-error-900;
+  border-color: $color-error-200;
+}
+
+// Info
+.badge--info {
+  background-color: $color-info-100;
+  color: $color-info-900;
+  border-color: $color-info-200;
+}
+
+// --------------------------------------------
+// Solid Badges (with solid background)
+// --------------------------------------------
+.badge--solid-primary {
+  background-color: $color-primary-500;
+  color: white;
+  border-color: $color-primary-500;
+}
+
+.badge--solid-secondary {
+  background-color: $color-gray-500;
+  color: white;
+  border-color: $color-gray-500;
+}
+
+.badge--solid-success {
+  background-color: $color-success-500;
+  color: white;
+  border-color: $color-success-500;
+}
+
+.badge--solid-warning {
+  background-color: $color-warning-500;
+  color: white;
+  border-color: $color-warning-500;
+}
+
+.badge--solid-error {
+  background-color: $color-error-500;
+  color: white;
+  border-color: $color-error-500;
+}
+
+.badge--solid-info {
+  background-color: $color-info-500;
+  color: white;
+  border-color: $color-info-500;
+}
+
+// --------------------------------------------
+// Outline Badges
+// --------------------------------------------
+.badge--outline-primary {
+  background-color: transparent;
+  color: $color-primary-700;
+  border-color: $color-primary-500;
+}
+
+.badge--outline-secondary {
+  background-color: transparent;
+  color: $color-gray-700;
+  border-color: $color-gray-400;
+}
+
+.badge--outline-success {
+  background-color: transparent;
+  color: $color-success-700;
+  border-color: $color-success-500;
+}
+
+.badge--outline-warning {
+  background-color: transparent;
+  color: $color-warning-700;
+  border-color: $color-warning-500;
+}
+
+.badge--outline-error {
+  background-color: transparent;
+  color: $color-error-700;
+  border-color: $color-error-500;
+}
+
+.badge--outline-info {
+  background-color: transparent;
+  color: $color-info-700;
+  border-color: $color-info-500;
+}
+
+// --------------------------------------------
+// Badge Sizes
+// --------------------------------------------
+.badge--sm {
+  padding: 0.125rem $space-2;
+  font-size: 0.625rem; // 10px
+}
+
+.badge--lg {
+  padding: $space-2 $space-4;
+  font-size: $font-size-sm;
+}
+
+// --------------------------------------------
+// Badge with Dot
+// --------------------------------------------
+.badge--dot {
+  padding-left: $space-2;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: $radius-full;
+    background-color: currentColor;
+    margin-right: $space-2;
+  }
+}
+
+// --------------------------------------------
+// Badge with Close Button
+// --------------------------------------------
+.badge--dismissible {
+  padding-right: $space-2;
+
+  .badge__close {
+    @include button-reset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: $space-1;
+    padding: 0;
+    color: currentColor;
+    opacity: 0.6;
+    transition: $transition-opacity;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    svg {
+      width: 0.875em;
+      height: 0.875em;
+    }
+  }
+}
+
+// --------------------------------------------
+// Pill Badge
+// --------------------------------------------
+.badge--pill {
+  padding-left: $space-3;
+  padding-right: $space-3;
+  border-radius: $radius-full;
+}
+
+// --------------------------------------------
+// Square Badge
+// --------------------------------------------
+.badge--square {
+  border-radius: $radius-sm;
+}
+
+// --------------------------------------------
+// Badge Group
+// --------------------------------------------
+.badge-group {
+  display: inline-flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+// --------------------------------------------
+// Notification Badge (number badge)
+// --------------------------------------------
+.badge--notification {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 $space-1;
+  font-size: 0.625rem;
+  font-weight: $font-weight-bold;
+  background-color: $color-error-500;
+  color: white;
+  border-radius: $radius-full;
+
+  &.badge--sm {
+    min-width: 1rem;
+    height: 1rem;
+    font-size: 0.5rem;
+  }
+
+  &.badge--lg {
+    min-width: 1.5rem;
+    height: 1.5rem;
+    font-size: $font-size-xs;
+  }
+}
+
+// Badge positioned on top of element
+.badge-wrapper {
+  position: relative;
+  display: inline-block;
+
+  .badge--notification {
+    position: absolute;
+    top: -$space-1;
+    right: -$space-1;
+  }
+}

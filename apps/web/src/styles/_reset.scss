@@ -1,0 +1,128 @@
+// ============================================
+// CSS Reset / Normalize
+// ============================================
+
+// --------------------------------------------
+// Box Sizing
+// --------------------------------------------
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+// --------------------------------------------
+// Remove Default Margin & Padding
+// --------------------------------------------
+* {
+  margin: 0;
+  padding: 0;
+}
+
+// --------------------------------------------
+// HTML & Body
+// --------------------------------------------
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+}
+
+// --------------------------------------------
+// Headings
+// --------------------------------------------
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+// --------------------------------------------
+// Lists
+// --------------------------------------------
+ol, ul {
+  list-style: none;
+}
+
+// --------------------------------------------
+// Links
+// --------------------------------------------
+a {
+  text-decoration: inherit;
+  color: inherit;
+}
+
+// --------------------------------------------
+// Images & Media
+// --------------------------------------------
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+// --------------------------------------------
+// Form Elements
+// --------------------------------------------
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+// Remove default button styles
+button:focus {
+  outline: none;
+}
+
+// --------------------------------------------
+// Accessibility
+// --------------------------------------------
+// Remove animations for people who prefer reduced motion
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// --------------------------------------------
+// Tables
+// --------------------------------------------
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+// --------------------------------------------
+// Text Selection
+// --------------------------------------------
+::selection {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: inherit;
+}

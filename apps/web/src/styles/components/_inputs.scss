@@ -1,0 +1,382 @@
+// ============================================
+// Form Inputs Component Styles
+// ============================================
+
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// --------------------------------------------
+// Form Group
+// --------------------------------------------
+.form-group {
+  margin-bottom: $space-6;
+
+  label {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+    margin-bottom: $space-2;
+
+    &.required::after {
+      content: '*';
+      color: $color-error-500;
+      margin-left: $space-1;
+    }
+  }
+}
+
+// --------------------------------------------
+// Base Input Styles
+// --------------------------------------------
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: $input-padding-x;
+  height: $input-height-base;
+  font-size: $font-size-base;
+  line-height: $line-height-normal;
+  color: $color-text-primary;
+  background-color: $color-bg-primary;
+  border: $input-border-width solid $color-border-medium;
+  border-radius: $radius-md;
+  transition: $transition-all;
+
+  @include placeholder {
+    color: $color-text-muted;
+  }
+
+  &:hover:not(:disabled):not(:focus) {
+    border-color: $color-border-dark;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary-500;
+    box-shadow: $shadow-focus;
+  }
+
+  &:disabled {
+    background-color: $color-bg-secondary;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &.error,
+  &.is-invalid {
+    border-color: $color-error-500;
+
+    &:focus {
+      box-shadow: $shadow-focus-error;
+    }
+  }
+
+  &.success,
+  &.is-valid {
+    border-color: $color-success-500;
+  }
+}
+
+// --------------------------------------------
+// Textarea
+// --------------------------------------------
+.form-textarea {
+  height: auto;
+  min-height: 6rem;
+  padding: $space-3;
+  resize: vertical;
+  line-height: $line-height-relaxed;
+
+  @include custom-scrollbar;
+}
+
+// --------------------------------------------
+// Select
+// --------------------------------------------
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right $space-3 center;
+  background-repeat: no-repeat;
+  background-size: 1.5em;
+  padding-right: $space-10;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+// --------------------------------------------
+// Input Sizes
+// --------------------------------------------
+.form-input--sm,
+.form-select--sm {
+  height: $input-height-sm;
+  font-size: $font-size-sm;
+  padding-left: $space-2;
+  padding-right: $space-2;
+}
+
+.form-input--lg,
+.form-select--lg {
+  height: $input-height-lg;
+  font-size: $font-size-lg;
+  padding-left: $space-4;
+  padding-right: $space-4;
+}
+
+// --------------------------------------------
+// Input with Icon
+// --------------------------------------------
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-icon {
+    position: absolute;
+    left: $space-3;
+    color: $color-text-muted;
+    pointer-events: none;
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  .input-icon--right {
+    left: auto;
+    right: $space-3;
+  }
+
+  .form-input {
+    &.has-icon-left {
+      padding-left: $space-10;
+    }
+
+    &.has-icon-right {
+      padding-right: $space-10;
+    }
+  }
+}
+
+// --------------------------------------------
+// Checkbox & Radio
+// --------------------------------------------
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-3;
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 1.125rem;
+    height: 1.125rem;
+    border: $input-border-width solid $color-border-medium;
+    background-color: $color-bg-primary;
+    cursor: pointer;
+    transition: $transition-all;
+
+    &:checked {
+      background-color: $color-primary-500;
+      border-color: $color-primary-500;
+    }
+
+    &:focus {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  input[type='checkbox'] {
+    border-radius: $radius-sm;
+  }
+
+  input[type='radio'] {
+    border-radius: $radius-full;
+  }
+
+  label {
+    margin: 0;
+    font-size: $font-size-base;
+    font-weight: $font-weight-normal;
+    cursor: pointer;
+    user-select: none;
+  }
+}
+
+// --------------------------------------------
+// Switch Toggle
+// --------------------------------------------
+.form-switch {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+
+  input[type='checkbox'] {
+    position: relative;
+    width: 2.75rem;
+    height: 1.5rem;
+    appearance: none;
+    background-color: $color-gray-300;
+    border: none;
+    border-radius: $radius-full;
+    cursor: pointer;
+    transition: $transition-all;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0.125rem;
+      left: 0.125rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      background-color: white;
+      border-radius: $radius-full;
+      transition: $transition-all;
+      box-shadow: $shadow-sm;
+    }
+
+    &:checked {
+      background-color: $color-primary-500;
+
+      &::before {
+        transform: translateX(1.25rem);
+      }
+    }
+
+    &:focus {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  label {
+    margin: 0;
+    font-size: $font-size-base;
+    cursor: pointer;
+  }
+}
+
+// --------------------------------------------
+// Form Validation Messages
+// --------------------------------------------
+.form-hint {
+  display: block;
+  margin-top: $space-2;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+}
+
+.form-error,
+.invalid-feedback {
+  display: block;
+  margin-top: $space-2;
+  font-size: $font-size-sm;
+  color: $color-error-700;
+}
+
+.form-success,
+.valid-feedback {
+  display: block;
+  margin-top: $space-2;
+  font-size: $font-size-sm;
+  color: $color-success-700;
+}
+
+// --------------------------------------------
+// Input Groups (Addons)
+// --------------------------------------------
+.input-addon-group {
+  display: flex;
+
+  .input-addon {
+    display: flex;
+    align-items: center;
+    padding: $input-padding-x;
+    background-color: $color-bg-secondary;
+    border: $input-border-width solid $color-border-medium;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    white-space: nowrap;
+
+    &:first-child {
+      border-top-left-radius: $radius-md;
+      border-bottom-left-radius: $radius-md;
+      border-right: none;
+    }
+
+    &:last-child {
+      border-top-right-radius: $radius-md;
+      border-bottom-right-radius: $radius-md;
+      border-left: none;
+    }
+  }
+
+  .form-input {
+    border-radius: 0;
+
+    &:first-child {
+      border-top-left-radius: $radius-md;
+      border-bottom-left-radius: $radius-md;
+    }
+
+    &:last-child {
+      border-top-right-radius: $radius-md;
+      border-bottom-right-radius: $radius-md;
+    }
+
+    &:not(:first-child) {
+      border-left: none;
+    }
+
+    &:not(:last-child) {
+      border-right: none;
+    }
+  }
+}
+
+// --------------------------------------------
+// File Input
+// --------------------------------------------
+.form-file {
+  position: relative;
+  display: inline-block;
+
+  input[type='file'] {
+    @include visually-hidden;
+  }
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $btn-padding-y-base $btn-padding-x-base;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+    background-color: $color-bg-secondary;
+    border: 1px solid $color-border-medium;
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition: $transition-all;
+
+    &:hover {
+      background-color: $color-bg-tertiary;
+      border-color: $color-border-dark;
+    }
+  }
+}

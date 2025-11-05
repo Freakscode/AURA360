@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="10" failures="0" skipped="0" tests="10" time="58.361" timestamp="2025-10-27T18:38:29.426179-05:00" hostname="gabo288.local"><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_generate_advice_by_category[mind-mente]" time="58.242"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_generate_advice_by_category[body-cuerpo]" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_generate_advice_by_category[soul-alma]" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_generate_advice_by_category[holistic-integral]" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_advice_with_spanish_category_aliases" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestAdviceEndpoint" name="test_advice_includes_vector_query_info" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestErrorHandling" name="test_unsupported_category_returns_422" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestErrorHandling" name="test_missing_required_fields_returns_422" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestErrorHandling" name="test_empty_user_profile_returns_422" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase><testcase classname="tests.integration.test_agents_service_integration.TestPerformance" name="test_advice_latency_is_reasonable" time="0.000"><error message="failed on setup with &quot;Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080&quot;">@pytest.fixture(scope="module")
+    def wait_for_services() -&gt; None:
+        """Espera a que todos los servicios requeridos estén disponibles."""
+        # Verificar servicio vectorial
+        _wait_for_service(
+            VECTORIAL_SERVICE_URL,
+            "/readyz",
+            "servicio vectorial",
+            "cd vectorial_db &amp;&amp; docker compose up -d",
+        )
+    
+        # Verificar servicio de agentes
+&gt;       _wait_for_service(
+            AGENTS_SERVICE_URL,
+            "/readyz",
+            "servicio de agentes",
+            "cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080",
+        )
+
+tests/integration/test_agents_service_integration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+base_url = 'http://localhost:8080', health_path = '/readyz'
+service_name = 'servicio de agentes'
+start_command = 'cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080'
+max_attempts = 30
+
+    def _wait_for_service(
+        base_url: str,
+        health_path: str,
+        service_name: str,
+        start_command: str,
+        max_attempts: int = 30,
+    ) -&gt; None:
+        """Espera a que un servicio esté disponible."""
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{base_url}{health_path}", timeout=5)
+                if response.status_code == 200:
+                    return
+            except (ConnectionError, Timeout):
+                pass
+    
+            if attempt &lt; max_attempts - 1:
+                time.sleep(2)
+    
+&gt;       pytest.fail(
+            f"El {service_name} no está disponible en {base_url}. "
+            f"Asegúrate de ejecutar: {start_command}"
+        )
+E       Failed: El servicio de agentes no está disponible en http://localhost:8080. Asegúrate de ejecutar: cd agents-service &amp;&amp; uv run uvicorn main:app --reload --port 8080
+
+tests/integration/test_agents_service_integration.py:358: Failed</error></testcase></testsuite></testsuites>

@@ -1,0 +1,152 @@
+<div class="context-switcher" [class.is-open]="isOpen()">
+  <!-- Trigger button -->
+  <button
+    type="button"
+    class="context-switcher__trigger"
+    (click)="toggle()"
+    [attr.aria-expanded]="isOpen()"
+    aria-label="Cambiar contexto de acceso"
+  >
+    @if (activeContext(); as context) {
+      <div class="context-switcher__active">
+        <div class="context-switcher__icon">
+          @if (context.institution) {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+          } @else {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          }
+        </div>
+
+        <div class="context-switcher__text">
+          <div class="context-switcher__name">{{ context.displayLabel }}</div>
+          <div class="context-switcher__role">{{ getRoleLabel(context) }}</div>
+        </div>
+
+        @if (getTierBadge(context); as badge) {
+          <span class="context-switcher__badge">{{ badge }}</span>
+        }
+
+        <svg
+          class="context-switcher__arrow"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </div>
+    } @else {
+      <div class="context-switcher__active">
+        <div class="context-switcher__text">
+          <div class="context-switcher__name">No hay contexto activo</div>
+        </div>
+      </div>
+    }
+  </button>
+
+  <!-- Dropdown menu -->
+  @if (isOpen()) {
+    <div class="context-switcher__dropdown">
+      <div class="context-switcher__header">
+        <h3>Cambiar contexto</h3>
+      </div>
+
+      <ul class="context-switcher__list">
+        @for (context of availableContexts(); track context.displayLabel) {
+          <li>
+            <button
+              type="button"
+              class="context-switcher__option"
+              [class.is-active]="isActiveContext(context)"
+              (click)="selectContext(context)"
+            >
+              <div class="context-switcher__option-icon">
+                @if (context.institution) {
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  </svg>
+                } @else {
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                }
+              </div>
+
+              <div class="context-switcher__option-text">
+                <div class="context-switcher__option-name">
+                  {{ context.displayLabel }}
+                  @if (context.isPrimary) {
+                    <span class="context-switcher__primary-badge">Principal</span>
+                  }
+                </div>
+                <div class="context-switcher__option-role">
+                  {{ getRoleLabel(context) }}
+                </div>
+              </div>
+
+              @if (getTierBadge(context); as badge) {
+                <span class="context-switcher__option-badge">{{ badge }}</span>
+              }
+
+              @if (isActiveContext(context)) {
+                <svg
+                  class="context-switcher__check"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              }
+            </button>
+          </li>
+        } @empty {
+          <li class="context-switcher__empty">No hay contextos disponibles</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- Backdrop para cerrar al hacer click fuera -->
+  @if (isOpen()) {
+    <div class="context-switcher__backdrop" (click)="close()"></div>
+  }
+</div>

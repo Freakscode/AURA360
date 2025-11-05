@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Usuarios por Rol - AURA365</title>
+    <style>
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 24px; background: #f5f6f8; }
+      h1 { margin-bottom: 8px; }
+      .subtitle { color: #666; margin-bottom: 24px; }
+      table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08); }
+      th, td { padding: 14px 16px; text-align: left; }
+      th { background: #0f172a; color: #fff; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+      tr:nth-child(even) { background: #f8fafc; }
+      a.role-link { color: #0f6fff; text-decoration: none; font-weight: 600; }
+      a.role-link:hover { text-decoration: underline; }
+      .count { font-weight: 600; }
+      .empty { padding: 24px; text-align: center; color: #8c8c8c; }
+    </style>
+  </head>
+  <body>
+    <h1>Gestión de Usuarios por Rol</h1>
+    <p class="subtitle">
+      Consulta el total de usuarios asignados a cada rol global y navega para revisar el detalle.
+    </p>
+
+    {% if roles %}
+      <table>
+        <thead>
+          <tr>
+            <th>Rol</th>
+            <th>Usuarios</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for role in roles %}
+            <tr>
+              <td>{{ role.label }}</td>
+              <td class="count">{{ role.count }}</td>
+              <td><a class="role-link" href="{{ role.url }}">Ver usuarios</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty">
+        Aún no hay usuarios registrados en la plataforma.
+      </div>
+    {% endif %}
+  </body>
+</html>

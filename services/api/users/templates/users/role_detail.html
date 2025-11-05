@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Usuarios - {{ role.label }}</title>
+    <style>
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 24px; background: #f6f7fb; }
+      header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+      h1 { margin: 0 0 4px 0; }
+      .role-meta { color: #5f6b7c; margin-bottom: 16px; }
+      a.back-link { color: #0f6fff; text-decoration: none; font-weight: 600; }
+      a.back-link:hover { text-decoration: underline; }
+      form.search { display: flex; gap: 8px; margin-bottom: 16px; }
+      form.search input[type="text"] { flex: 1; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
+      form.search button { background: #0f172a; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+      form.search button:hover { background: #1e293b; }
+      table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08); }
+      th, td { padding: 12px 14px; text-align: left; }
+      th { background: #0f172a; color: #fff; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+      tr:nth-child(even) { background: #f8fafc; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+      .badge-tier-free { background: #e2e8f0; color: #475569; }
+      .badge-tier-premium { background: #fde68a; color: #92400e; }
+      .badge-plan { background: #dbeafe; color: #1d4ed8; }
+      .independent { color: #0f6fff; font-weight: 600; }
+      .empty { padding: 24px; text-align: center; color: #8c8c8c; background: #fff; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>{{ role.label }}</h1>
+        <p class="role-meta">Usuarios asignados al rol global seleccionado.</p>
+      </div>
+      <a class="back-link" href="{{ roles_url }}">← Volver al resumen</a>
+    </header>
+
+    <form class="search" method="get">
+      <input type="text" name="q" placeholder="Buscar por nombre o email…" value="{{ search_query }}" />
+      <button type="submit">Buscar</button>
+    </form>
+
+    {% if users %}
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Tier</th>
+            <th>Plan</th>
+            <th>Independiente</th>
+            <th>Fecha de creación</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td>{{ user.full_name }}</td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span class="badge {% if user.tier == 'premium' %}badge-tier-premium{% else %}badge-tier-free{% endif %}">
+                  {{ user.tier|title }}
+                </span>
+              </td>
+              <td>
+                <span class="badge badge-plan">{{ user.billing_plan|title }}</span>
+              </td>
+              <td>
+                {% if user.is_independent %}
+                  <span class="independent">Sí</span>
+                {% else %}
+                  No
+                {% endif %}
+              </td>
+              <td>{{ user.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty">
+        No se encontraron usuarios con el rol seleccionado.
+      </div>
+    {% endif %}
+  </body>
+</html>

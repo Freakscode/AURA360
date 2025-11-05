@@ -1,0 +1,1 @@
+{"schema":{"titulo":{"type":"text","tokenizer":"multilingual","lowercase":true},"abstract":{"type":"text","tokenizer":"multilingual","lowercase":true},"anio":"integer","tipo_estudio":"keyword"}}

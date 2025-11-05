@@ -1,0 +1,178 @@
+// ============================================
+// AURA360 Global Styles
+// ============================================
+
+// --------------------------------------------
+// 1. Design Tokens (Variables)
+// --------------------------------------------
+@use 'styles/variables' as *;
+
+// --------------------------------------------
+// 2. Mixins & Functions
+// --------------------------------------------
+@use 'styles/mixins' as *;
+
+// --------------------------------------------
+// 3. CSS Reset & Base Styles
+// --------------------------------------------
+@use 'styles/reset';
+
+// --------------------------------------------
+// 4. Typography
+// --------------------------------------------
+@use 'styles/typography';
+
+// --------------------------------------------
+// 5. UI Components
+// --------------------------------------------
+@use 'styles/components';
+
+// --------------------------------------------
+// 6. Utility Classes
+// --------------------------------------------
+@use 'styles/utilities';
+
+// --------------------------------------------
+// 7. Custom Global Styles
+// --------------------------------------------
+
+// Smooth scrolling
+html {
+  scroll-behavior: smooth;
+}
+
+// Container
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: $space-4;
+  padding-right: $space-4;
+
+  @include md {
+    max-width: $container-md;
+  }
+
+  @include lg {
+    max-width: $container-lg;
+  }
+
+  @include xl {
+    max-width: $container-xl;
+  }
+
+  @include xxl {
+    max-width: $container-2xl;
+  }
+}
+
+// Main content wrapper
+.main-content {
+  min-height: calc(100vh - 4rem);
+  padding: $space-6;
+}
+
+// Loading spinner (global)
+.spinner {
+  @include flex-center;
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid $color-gray-200;
+  border-top-color: $color-primary-500;
+  border-radius: $radius-full;
+  animation: spinner 0.8s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Focus visible (for accessibility)
+*:focus-visible {
+  @include focus-ring;
+}
+
+// Selection
+::selection {
+  background-color: rgba($color-primary-500, 0.2);
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: rgba($color-primary-500, 0.2);
+  color: inherit;
+}
+
+// Scrollbar styling
+body {
+  @include custom-scrollbar;
+}
+
+// Disabled elements
+[disabled],
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+// Screen reader only
+.sr-only {
+  @include visually-hidden;
+}
+
+.sr-only-focusable {
+  @include visually-hidden-focusable;
+}
+
+// --------------------------------------------
+// 8. Print Styles
+// --------------------------------------------
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+
+  pre {
+    white-space: pre-wrap !important;
+  }
+
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+}

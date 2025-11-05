@@ -1,0 +1,127 @@
+<header class="shell__header">
+  <button
+    type="button"
+    class="shell__toggle"
+    aria-label="Alternar navegación"
+    (click)="toggleSideNav()"
+  >
+    <span class="shell__toggle-bar"></span>
+    <span class="shell__toggle-bar"></span>
+    <span class="shell__toggle-bar"></span>
+  </button>
+
+  <div class="shell__brand">
+    <span class="shell__brand-icon">🧠</span>
+    <div class="shell__brand-text">
+      <span class="shell__brand-name">AURA360</span>
+      <span class="shell__brand-subtitle">Plataforma Holística</span>
+    </div>
+  </div>
+
+  <div class="shell__header-center">
+    @if (hasContexts()) {
+      <app-context-switcher />
+    }
+  </div>
+
+  <div class="shell__header-actions">
+    <button type="button" class="shell__notifications" aria-label="Notificaciones">
+      <span class="shell__notifications-icon">🔔</span>
+      @if (notificationsCount() > 0) {
+        <span class="shell__notifications-badge">{{ notificationsCount() }}</span>
+      }
+    </button>
+
+    <div class="shell__user-menu">
+      <button
+        type="button"
+        class="shell__user-chip"
+        (click)="toggleUserMenu()"
+        [attr.aria-expanded]="isUserMenuOpen()"
+      >
+        <div class="shell__avatar" aria-hidden="true">{{ userInitials() }}</div>
+        <div class="shell__user-meta">
+          <span class="shell__user-name">{{ userName() }}</span>
+          <span class="shell__user-role">{{ userRole() }}</span>
+        </div>
+        <svg
+          class="shell__user-chevron"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+
+      @if (isUserMenuOpen()) {
+        <div class="shell__user-dropdown">
+          <button type="button" class="shell__user-dropdown-item" (click)="navigateToProfile()">
+            <span class="shell__user-dropdown-icon">👤</span>
+            <span>Mi Perfil</span>
+          </button>
+          <button type="button" class="shell__user-dropdown-item" (click)="navigateToSettings()">
+            <span class="shell__user-dropdown-icon">⚙️</span>
+            <span>Configuración</span>
+          </button>
+          <div class="shell__user-dropdown-divider"></div>
+          <button type="button" class="shell__user-dropdown-item shell__user-dropdown-item--danger" (click)="logout()">
+            <span class="shell__user-dropdown-icon">🚪</span>
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
+      }
+
+      @if (isUserMenuOpen()) {
+        <div class="shell__user-dropdown-backdrop" (click)="toggleUserMenu()"></div>
+      }
+    </div>
+  </div>
+</header>
+
+<div class="shell__body">
+  <nav class="shell__sidenav" [class.shell__sidenav--collapsed]="!isSideNavOpen()">
+    @if (menuItems().length > 0) {
+      <div class="shell__nav-group">
+        <h2 class="shell__nav-heading">Navegación</h2>
+        <ul class="shell__nav-list">
+          @for (item of menuItems(); track item.route) {
+            <li>
+              <a
+                routerLinkActive="shell__nav-link--active"
+                [routerLink]="item.route"
+                class="shell__nav-link"
+                [class.shell__nav-link--premium]="item.isPremium"
+              >
+                @if (item.icon) {
+                  <span class="shell__nav-icon" aria-hidden="true">{{ item.icon }}</span>
+                }
+                <span class="shell__nav-label">{{ item.label }}</span>
+                @if (item.badge) {
+                  <span class="shell__nav-badge">{{ item.badge }}</span>
+                }
+                @if (item.isPremium) {
+                  <span class="shell__nav-premium-badge">★</span>
+                }
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <div class="shell__nav-empty">
+        <p>No hay opciones de menú disponibles</p>
+      </div>
+    }
+  </nav>
+
+  <main class="shell__content">
+    <section class="shell__content-outlet">
+      <router-outlet />
+    </section>
+  </main>
+</div>

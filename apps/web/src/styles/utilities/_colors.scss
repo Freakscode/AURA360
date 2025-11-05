@@ -1,0 +1,114 @@
+// ============================================
+// Color Utilities
+// ============================================
+
+@use '../variables' as *;
+
+// --------------------------------------------
+// Background Colors
+// --------------------------------------------
+
+// Primary
+.bg-primary-50 { background-color: $color-primary-50; }
+.bg-primary-100 { background-color: $color-primary-100; }
+.bg-primary-500 { background-color: $color-primary-500; }
+.bg-primary-600 { background-color: $color-primary-600; }
+.bg-primary-700 { background-color: $color-primary-700; }
+
+// Gray
+.bg-gray-50 { background-color: $color-gray-50; }
+.bg-gray-100 { background-color: $color-gray-100; }
+.bg-gray-200 { background-color: $color-gray-200; }
+.bg-gray-300 { background-color: $color-gray-300; }
+.bg-gray-500 { background-color: $color-gray-500; }
+.bg-gray-700 { background-color: $color-gray-700; }
+.bg-gray-900 { background-color: $color-gray-900; }
+
+// Success
+.bg-success-50 { background-color: $color-success-50; }
+.bg-success-100 { background-color: $color-success-100; }
+.bg-success-500 { background-color: $color-success-500; }
+
+// Warning
+.bg-warning-50 { background-color: $color-warning-50; }
+.bg-warning-100 { background-color: $color-warning-100; }
+.bg-warning-500 { background-color: $color-warning-500; }
+
+// Error
+.bg-error-50 { background-color: $color-error-50; }
+.bg-error-100 { background-color: $color-error-100; }
+.bg-error-500 { background-color: $color-error-500; }
+
+// Info
+.bg-info-50 { background-color: $color-info-50; }
+.bg-info-100 { background-color: $color-info-100; }
+.bg-info-500 { background-color: $color-info-500; }
+
+// Semantic
+.bg-white { background-color: #ffffff; }
+.bg-transparent { background-color: transparent; }
+
+// --------------------------------------------
+// Border Colors
+// --------------------------------------------
+.border-primary { border-color: $color-primary-500; }
+.border-gray-200 { border-color: $color-gray-200; }
+.border-gray-300 { border-color: $color-gray-300; }
+.border-success { border-color: $color-success-500; }
+.border-warning { border-color: $color-warning-500; }
+.border-error { border-color: $color-error-500; }
+.border-info { border-color: $color-info-500; }
+
+// --------------------------------------------
+// Border Width
+// --------------------------------------------
+.border-0 { border-width: 0; }
+.border { border-width: 1px; border-style: solid; }
+.border-2 { border-width: 2px; border-style: solid; }
+.border-4 { border-width: 4px; border-style: solid; }
+
+// Individual sides
+.border-t { border-top-width: 1px; border-top-style: solid; }
+.border-r { border-right-width: 1px; border-right-style: solid; }
+.border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+.border-l { border-left-width: 1px; border-left-style: solid; }
+
+// --------------------------------------------
+// Border Radius
+// --------------------------------------------
+.rounded-none { border-radius: $radius-none; }
+.rounded-sm { border-radius: $radius-sm; }
+.rounded { border-radius: $radius-base; }
+.rounded-md { border-radius: $radius-md; }
+.rounded-lg { border-radius: $radius-lg; }
+.rounded-xl { border-radius: $radius-xl; }
+.rounded-2xl { border-radius: $radius-2xl; }
+.rounded-full { border-radius: $radius-full; }
+
+// Individual corners
+.rounded-t-lg { border-top-left-radius: $radius-lg; border-top-right-radius: $radius-lg; }
+.rounded-r-lg { border-top-right-radius: $radius-lg; border-bottom-right-radius: $radius-lg; }
+.rounded-b-lg { border-bottom-left-radius: $radius-lg; border-bottom-right-radius: $radius-lg; }
+.rounded-l-lg { border-top-left-radius: $radius-lg; border-bottom-left-radius: $radius-lg; }
+
+// --------------------------------------------
+// Box Shadow
+// --------------------------------------------
+.shadow-none { box-shadow: $shadow-none; }
+.shadow-xs { box-shadow: $shadow-xs; }
+.shadow-sm { box-shadow: $shadow-sm; }
+.shadow { box-shadow: $shadow-base; }
+.shadow-md { box-shadow: $shadow-md; }
+.shadow-lg { box-shadow: $shadow-lg; }
+.shadow-xl { box-shadow: $shadow-xl; }
+.shadow-2xl { box-shadow: $shadow-2xl; }
+.shadow-inner { box-shadow: $shadow-inner; }
+
+// --------------------------------------------
+// Opacity
+// --------------------------------------------
+.opacity-0 { opacity: 0; }
+.opacity-25 { opacity: 0.25; }
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+.opacity-100 { opacity: 1; }

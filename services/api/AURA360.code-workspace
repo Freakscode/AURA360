@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../aura_mobile"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../vectorial_db"
+		}
+	],
+	"settings": {}
+}

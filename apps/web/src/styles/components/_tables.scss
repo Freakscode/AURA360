@@ -1,0 +1,374 @@
+// ============================================
+// Tables Component Styles
+// ============================================
+
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// --------------------------------------------
+// Base Table
+// --------------------------------------------
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: $color-bg-primary;
+  font-size: $font-size-sm;
+
+  th,
+  td {
+    padding: $table-cell-padding;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead {
+    background-color: $table-header-bg;
+
+    th {
+      font-weight: $font-weight-semibold;
+      color: $color-text-secondary;
+      text-transform: uppercase;
+      font-size: $font-size-xs;
+      letter-spacing: $letter-spacing-wider;
+      border-bottom: 1px solid $table-border-color;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $table-border-color;
+      transition: $transition-colors;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: $table-row-hover-bg;
+      }
+
+      &.active {
+        background-color: $color-primary-50;
+      }
+
+      &.inactive {
+        opacity: 0.6;
+      }
+    }
+
+    td {
+      color: $color-text-primary;
+    }
+  }
+
+  tfoot {
+    background-color: $table-header-bg;
+    border-top: 2px solid $table-border-color;
+
+    td {
+      font-weight: $font-weight-medium;
+    }
+  }
+}
+
+// --------------------------------------------
+// Table Variants
+// --------------------------------------------
+
+// Bordered Table
+.table--bordered {
+  border: 1px solid $table-border-color;
+
+  th,
+  td {
+    border: 1px solid $table-border-color;
+  }
+}
+
+// Striped Table
+.table--striped {
+  tbody tr:nth-child(even) {
+    background-color: $color-gray-50;
+  }
+}
+
+// Compact Table
+.table--compact {
+  th,
+  td {
+    padding: $space-2 $space-3;
+  }
+}
+
+// Spacious Table
+.table--spacious {
+  th,
+  td {
+    padding: $space-4 $space-6;
+  }
+}
+
+// Hoverable Table
+.table--hoverable {
+  tbody tr {
+    cursor: pointer;
+
+    &:hover {
+      background-color: $color-primary-50;
+    }
+  }
+}
+
+// --------------------------------------------
+// Responsive Table Container
+// --------------------------------------------
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid $table-border-color;
+  border-radius: $radius-lg;
+
+  @include custom-scrollbar;
+
+  .table {
+    margin: 0;
+    border: none;
+  }
+}
+
+// --------------------------------------------
+// Table with Actions Column
+// --------------------------------------------
+.table__actions {
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+// --------------------------------------------
+// Table Cell Alignment
+// --------------------------------------------
+.table-cell--center {
+  text-align: center !important;
+}
+
+.table-cell--right {
+  text-align: right !important;
+}
+
+// --------------------------------------------
+// Table Cell Content
+// --------------------------------------------
+.table-cell--truncate {
+  max-width: 200px;
+  @include truncate;
+}
+
+.table-cell--wrap {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.table-cell--nowrap {
+  white-space: nowrap;
+}
+
+// --------------------------------------------
+// Sortable Table Headers
+// --------------------------------------------
+.table__sort-header {
+  @include button-reset;
+  @include flex-start;
+  gap: $space-2;
+  width: 100%;
+  padding: $table-cell-padding;
+  cursor: pointer;
+  transition: $transition-colors;
+
+  &:hover {
+    background-color: $color-gray-100;
+  }
+
+  &--active {
+    color: $color-primary-600;
+  }
+
+  .sort-icon {
+    transition: $transition-transform;
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    &--asc {
+      transform: rotate(0deg);
+    }
+
+    &--desc {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// --------------------------------------------
+// Selectable Rows (Checkboxes)
+// --------------------------------------------
+.table--selectable {
+  .table__checkbox {
+    width: 3rem;
+    padding-right: 0;
+  }
+
+  tbody tr {
+    cursor: pointer;
+
+    &.selected {
+      background-color: $color-primary-50;
+    }
+  }
+}
+
+// --------------------------------------------
+// Empty State
+// --------------------------------------------
+.table__empty {
+  padding: $space-12;
+  text-align: center;
+  color: $color-text-muted;
+
+  svg {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto $space-4;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: $font-size-sm;
+  }
+
+  .btn {
+    margin-top: $space-4;
+  }
+}
+
+// --------------------------------------------
+// Loading State
+// --------------------------------------------
+.table__loading {
+  position: relative;
+
+  &::after {
+    @include absolute-cover;
+    content: '';
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// --------------------------------------------
+// Table Pagination
+// --------------------------------------------
+.table-pagination {
+  @include flex-between;
+  padding: $space-4;
+  border-top: 1px solid $table-border-color;
+
+  &__info {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+  }
+
+  &__controls {
+    display: flex;
+    gap: $space-2;
+  }
+}
+
+// --------------------------------------------
+// Expandable Rows
+// --------------------------------------------
+.table--expandable {
+  .table__expand-btn {
+    @include button-reset;
+    @include flex-center;
+    padding: $space-1;
+    color: $color-text-muted;
+    transition: $transition-all;
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      transition: $transition-transform;
+    }
+
+    &.expanded svg {
+      transform: rotate(90deg);
+    }
+
+    &:hover {
+      color: $color-primary-600;
+    }
+  }
+
+  .table__expanded-content {
+    background-color: $color-gray-50;
+    border-top: 1px solid $table-border-color;
+
+    td {
+      padding: $space-6;
+    }
+  }
+}
+
+// --------------------------------------------
+// Fixed Header Table
+// --------------------------------------------
+.table--fixed-header {
+  .table-container {
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: $table-header-bg;
+    box-shadow: 0 1px 0 $table-border-color;
+  }
+}
+
+// --------------------------------------------
+// Table Card (table inside a card)
+// --------------------------------------------
+.table-card {
+  @include card;
+  padding: 0;
+
+  .table-card__header {
+    @include flex-between;
+    padding: $space-6;
+    border-bottom: 1px solid $table-border-color;
+
+    h3 {
+      margin: 0;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+    }
+  }
+
+  .table {
+    border: none;
+  }
+
+  .table-container {
+    border: none;
+    border-radius: 0;
+  }
+}

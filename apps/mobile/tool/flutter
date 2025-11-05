@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REAL_FLUTTER="${FLUTTER_REAL:-}"
+
+resolve_real_flutter() {
+  if [[ -n "${REAL_FLUTTER}" ]]; then
+    return 0
+  fi
+
+  if command -v flutter >/dev/null 2>&1; then
+    local original_path="${PATH}"
+    local filtered_path=""
+    local sep=""
+    local self_real=""
+    if self_real="$(cd "${SELF_DIR}" && pwd -P)"; then
+      :
+    else
+      self_real="${SELF_DIR}"
+    fi
+    IFS=':' read -ra path_parts <<<"${PATH}"
+    for part in "${path_parts[@]}"; do
+      local candidate="${part}"
+      if [[ -z "${candidate}" ]]; then
+        candidate="."
+      fi
+      local candidate_real=""
+      if candidate_real="$(cd "${candidate}" 2>/dev/null && pwd -P)"; then
+        if [[ "${candidate_real}" == "${self_real}" ]]; then
+          continue
+        fi
+      elif [[ "${candidate}" == "${SELF_DIR}" ]]; then
+        continue
+      fi
+      filtered_path+="${sep}${candidate}"
+      sep=":"
+    done
+    PATH="${filtered_path}"
+    if command -v flutter >/dev/null 2>&1; then
+      REAL_FLUTTER="$(command -v flutter)"
+    fi
+    PATH="${original_path}"
+  fi
+
+  if [[ -z "${REAL_FLUTTER}" ]]; then
+    echo "[flutter-wrapper] Unable to locate Flutter binary. Set FLUTTER_REAL=/absolute/path/to/flutter." >&2
+    exit 127
+  fi
+
+  export FLUTTER_REAL
+}
+
+if [[ $# -ge 2 && "$1" == "run" && "$2" == "dev" ]]; then
+  resolve_real_flutter
+  shift 2
+  exec "${SELF_DIR}/run_dev.sh" "$@"
+fi
+
+resolve_real_flutter
+exec "${REAL_FLUTTER}" "$@"

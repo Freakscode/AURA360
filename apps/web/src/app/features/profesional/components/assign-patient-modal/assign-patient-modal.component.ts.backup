@@ -1,0 +1,562 @@
+import {
+  Component,
+  inject,
+  signal,
+  output,
+  input,
+  effect,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CareRelationshipService } from '../../services/care-relationship.service';
+import { PatientInfo } from '../../models/care-relationship.model';
+
+@Component({
+  selector: 'app-assign-patient-modal',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    @if (isOpen()) {
+      <div class="modal-overlay" (click)="onOverlayClick($event)">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <header class="modal__header">
+            <h2>Asignar Nuevo Paciente</h2>
+            <button class="modal__close" (click)="close()">&times;</button>
+          </header>
+
+          <div class="modal__body">
+            <!-- Búsqueda de usuarios -->
+            <div class="form-group">
+              <label>Buscar Usuario</label>
+              <input
+                type="text"
+                [value]="searchQuery()"
+                (input)="onSearchInput($event)"
+                placeholder="Buscar por nombre o email..."
+                class="form-input"
+                [disabled]="loading()"
+              />
+              <p class="form-hint">
+                Busca usuarios existentes para asignarlos como tus pacientes
+              </p>
+            </div>
+
+            <!-- Resultados de búsqueda -->
+            @if (loading()) {
+              <div class="search-results__loading">
+                <p>Buscando usuarios...</p>
+              </div>
+            } @else if (searchQuery().length >= 3) {
+              @if (searchResults().length > 0) {
+                <div class="search-results">
+                  <p class="search-results__label">Resultados de búsqueda:</p>
+                  @for (user of searchResults(); track user.id) {
+                    <div
+                      class="user-card"
+                      [class.selected]="selectedUser()?.id === user.id"
+                      (click)="selectUser(user)">
+                      <div class="user-card__info">
+                        <h4>{{ user.full_name }}</h4>
+                        <p>{{ user.email }}</p>
+                        @if (user.role_global) {
+                          <span class="user-card__role">{{ user.role_global }}</span>
+                        }
+                      </div>
+                      @if (selectedUser()?.id === user.id) {
+                        <div class="user-card__check">✓</div>
+                      }
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="search-results__empty">
+                  <p>No se encontraron usuarios con ese criterio.</p>
+                </div>
+              }
+            } @else if (searchQuery().length > 0) {
+              <div class="search-results__hint">
+                <p>Escribe al menos 3 caracteres para buscar</p>
+              </div>
+            }
+
+            <!-- Usuario seleccionado -->
+            @if (selectedUser(); as user) {
+              <div class="selected-user">
+                <p class="selected-user__label">Usuario seleccionado:</p>
+                <div class="selected-user__card">
+                  <div class="selected-user__info">
+                    <h4>{{ user.full_name }}</h4>
+                    <p>{{ user.email }}</p>
+                  </div>
+                  <button
+                    class="selected-user__remove"
+                    (click)="clearSelection()">
+                    Cambiar
+                  </button>
+                </div>
+
+                <!-- Opciones de contexto -->
+                <div class="form-group">
+                  <label>Tipo de Relación</label>
+                  <select [(ngModel)]="contextType" class="form-select">
+                    <option value="independent">Práctica Independiente</option>
+                    <option value="institutional">Institucional</option>
+                  </select>
+                </div>
+
+                <!-- Notas opcionales -->
+                <div class="form-group">
+                  <label>Notas (Opcional)</label>
+                  <textarea
+                    [(ngModel)]="notes"
+                    placeholder="Agrega notas sobre esta relación de cuidado..."
+                    class="form-textarea"
+                    rows="3"></textarea>
+                </div>
+              </div>
+            }
+
+            <!-- Error -->
+            @if (error()) {
+              <div class="alert alert--error">
+                {{ error() }}
+              </div>
+            }
+          </div>
+
+          <footer class="modal__footer">
+            <button class="btn btn--secondary" (click)="close()" [disabled]="saving()">
+              Cancelar
+            </button>
+            <button
+              class="btn btn--primary"
+              (click)="assignPatient()"
+              [disabled]="!selectedUser() || saving()">
+              @if (saving()) {
+                Asignando...
+              } @else {
+                Asignar Paciente
+              }
+            </button>
+          </footer>
+        </div>
+      </div>
+    }
+  `,
+  styles: [
+    `
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+      }
+
+      .modal {
+        background: white;
+        border-radius: 0.5rem;
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal__header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        h2 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #111827;
+          margin: 0;
+        }
+      }
+
+      .modal__close {
+        background: transparent;
+        border: none;
+        font-size: 2rem;
+        color: #6b7280;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #111827;
+        }
+      }
+
+      .modal__body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .modal__footer {
+        padding: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+
+        label {
+          display: block;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 0.5rem;
+        }
+      }
+
+      .form-input,
+      .form-select,
+      .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #10b981;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        &:disabled {
+          background: #f9fafb;
+          cursor: not-allowed;
+        }
+      }
+
+      .form-textarea {
+        resize: vertical;
+        font-family: inherit;
+      }
+
+      .form-hint {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin: 0.5rem 0 0 0;
+      }
+
+      .search-results {
+        margin-top: 1rem;
+      }
+
+      .search-results__label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 0.75rem 0;
+      }
+
+      .search-results__loading,
+      .search-results__empty,
+      .search-results__hint {
+        padding: 2rem;
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+      }
+
+      .user-card {
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &:hover {
+          border-color: #10b981;
+          background: #f0fdf4;
+        }
+
+        &.selected {
+          border-color: #10b981;
+          background: #d1fae5;
+        }
+      }
+
+      .user-card__info {
+        h4 {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0 0 0.25rem 0;
+        }
+
+        p {
+          font-size: 0.875rem;
+          color: #6b7280;
+          margin: 0;
+        }
+      }
+
+      .user-card__role {
+        display: inline-block;
+        margin-top: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        background: #f3f4f6;
+        color: #374151;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 9999px;
+      }
+
+      .user-card__check {
+        width: 2rem;
+        height: 2rem;
+        background: #10b981;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: bold;
+      }
+
+      .selected-user {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .selected-user__label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 0.75rem 0;
+      }
+
+      .selected-user__card {
+        padding: 1rem;
+        background: #d1fae5;
+        border: 1px solid #10b981;
+        border-radius: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .selected-user__info {
+        h4 {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0 0 0.25rem 0;
+        }
+
+        p {
+          font-size: 0.875rem;
+          color: #6b7280;
+          margin: 0;
+        }
+      }
+
+      .selected-user__remove {
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #10b981;
+        border-radius: 0.375rem;
+        color: #10b981;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: #10b981;
+          color: white;
+        }
+      }
+
+      .alert {
+        padding: 1rem;
+        border-radius: 0.375rem;
+        margin-top: 1rem;
+
+        &--error {
+          background: #fef2f2;
+          border: 1px solid #fca5a5;
+          color: #dc2626;
+        }
+      }
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        &--primary {
+          background: #10b981;
+          color: white;
+
+          &:hover:not(:disabled) {
+            background: #059669;
+          }
+        }
+
+        &--secondary {
+          background: #f3f4f6;
+          color: #374151;
+
+          &:hover:not(:disabled) {
+            background: #e5e7eb;
+          }
+        }
+      }
+    `,
+  ],
+})
+export class AssignPatientModalComponent {
+  private readonly careService = inject(CareRelationshipService);
+
+  // Inputs/Outputs
+  readonly isOpen = input<boolean>(false);
+  readonly closed = output<void>();
+  readonly patientAssigned = output<void>();
+
+  // Estado local
+  readonly searchQuery = signal('');
+  readonly searchResults = signal<PatientInfo[]>([]);
+  readonly selectedUser = signal<PatientInfo | null>(null);
+  readonly contextType = signal<'independent' | 'institutional'>('independent');
+  readonly notes = signal('');
+  readonly loading = signal(false);
+  readonly saving = signal(false);
+  readonly error = signal<string | null>(null);
+
+  private searchTimeout: any;
+
+  constructor() {
+    // Resetear estado cuando se abre el modal
+    effect(() => {
+      if (this.isOpen()) {
+        this.resetState();
+      }
+    });
+  }
+
+  private resetState(): void {
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+    this.selectedUser.set(null);
+    this.contextType.set('independent');
+    this.notes.set('');
+    this.error.set(null);
+  }
+
+  onSearchInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const query = input.value;
+
+    // Update signal immediately for UI
+    this.searchQuery.set(query);
+
+    // Debounce search
+    clearTimeout(this.searchTimeout);
+
+    if (query.length < 3) {
+      this.searchResults.set([]);
+      return;
+    }
+
+    this.loading.set(true);
+    this.searchTimeout = setTimeout(async () => {
+      try {
+        const results = await this.careService.searchAvailableUsers(query);
+        this.searchResults.set(results);
+        this.error.set(null);
+      } catch (err) {
+        console.error('Error en búsqueda:', err);
+        this.error.set('Error al buscar usuarios');
+      } finally {
+        this.loading.set(false);
+      }
+    }, 500);
+  }
+
+  selectUser(user: PatientInfo): void {
+    this.selectedUser.set(user);
+  }
+
+  clearSelection(): void {
+    this.selectedUser.set(null);
+  }
+
+  async assignPatient(): Promise<void> {
+    const user = this.selectedUser();
+    if (!user) return;
+
+    this.saving.set(true);
+    this.error.set(null);
+
+    try {
+      await this.careService.assignPatient(
+        user.id,
+        this.contextType(),
+        this.notes() || undefined
+      );
+
+      this.patientAssigned.emit();
+      this.close();
+    } catch (err) {
+      console.error('Error al asignar paciente:', err);
+      this.error.set(
+        'Error al asignar el paciente. Por favor intenta nuevamente.'
+      );
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  close(): void {
+    this.closed.emit();
+  }
+
+  onOverlayClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.close();
+    }
+  }
+}

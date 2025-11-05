@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="8" time="12.386" timestamp="2025-10-27T21:03:52.419200-05:00" hostname="gabo288.local"><testcase classname="tests.integration.test_vectorial_service_integration.TestHealthAndMetrics" name="test_health_check" time="0.008" /><testcase classname="tests.integration.test_vectorial_service_integration.TestHealthAndMetrics" name="test_metrics_endpoint" time="0.014"><failure message="assert 500 == 200&#10; +  where 500 = &lt;Response [500]&gt;.status_code">self = &lt;tests.integration.test_vectorial_service_integration.TestHealthAndMetrics object at 0x1107ef110&gt;
+service_url = 'http://localhost:8001', wait_for_service = None
+
+    def test_metrics_endpoint(self, service_url: str, wait_for_service: None) -&gt; None:
+        """Valida que el endpoint de métricas retorna información del sistema."""
+        response = requests.get(f"{service_url}/metrics", timeout=10)
+    
+&gt;       assert response.status_code == 200
+E       assert 500 == 200
+E        +  where 500 = &lt;Response [500]&gt;.status_code
+
+tests/integration/test_vectorial_service_integration.py:75: AssertionError</failure></testcase><testcase classname="tests.integration.test_vectorial_service_integration.TestIngestion" name="test_ingest_single_document" time="2.061" /><testcase classname="tests.integration.test_vectorial_service_integration.TestIngestion" name="test_ingest_batch_documents" time="1.034" /><testcase classname="tests.integration.test_vectorial_service_integration.TestSearch" name="test_basic_search" time="4.612"><failure message="assert 500 == 200&#10; +  where 500 = &lt;Response [500]&gt;.status_code">self = &lt;tests.integration.test_vectorial_service_integration.TestSearch object at 0x1107ef390&gt;
+service_url = 'http://localhost:8001', wait_for_service = None
+
+    def test_basic_search(self, service_url: str, wait_for_service: None) -&gt; None:
+        """Valida la búsqueda semántica básica."""
+        payload = {
+            "query": "técnicas de respiración",
+            "limit": 5,
+        }
+    
+        response = requests.post(
+            f"{service_url}/search",
+            json=payload,
+            timeout=TEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code == 200
+E       assert 500 == 200
+E        +  where 500 = &lt;Response [500]&gt;.status_code
+
+tests/integration/test_vectorial_service_integration.py:236: AssertionError</failure></testcase><testcase classname="tests.integration.test_vectorial_service_integration.TestSearch" name="test_search_with_category_filter" time="4.570"><failure message="assert 500 == 200&#10; +  where 500 = &lt;Response [500]&gt;.status_code">self = &lt;tests.integration.test_vectorial_service_integration.TestSearch object at 0x1107ef4d0&gt;
+service_url = 'http://localhost:8001', wait_for_service = None
+
+    def test_search_with_category_filter(
+        self,
+        service_url: str,
+        wait_for_service: None,
+    ) -&gt; None:
+        """Valida la búsqueda con filtro de categoría."""
+        payload = {
+            "query": "mejorar salud",
+            "limit": 10,
+            "filter": {
+                "must": {"category": "body"}
+            },
+        }
+    
+        response = requests.post(
+            f"{service_url}/search",
+            json=payload,
+            timeout=TEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code == 200
+E       assert 500 == 200
+E        +  where 500 = &lt;Response [500]&gt;.status_code
+
+tests/integration/test_vectorial_service_integration.py:267: AssertionError</failure></testcase><testcase classname="tests.integration.test_vectorial_service_integration.TestDLQ" name="test_dlq_stats_endpoint" time="0.007" /><testcase classname="tests.integration.test_vectorial_service_integration.TestDLQ" name="test_dlq_list_endpoint" time="0.008" /></testsuite></testsuites>

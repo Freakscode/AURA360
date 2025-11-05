@@ -1,0 +1,190 @@
+topics:
+  sleep_health:
+    name: "Sleep Health"
+    synonyms:
+      - "sleep quality"
+      - "sleep hygiene"
+      - "sleep duration"
+  circadian_rhythm:
+    name: "Circadian Rhythm"
+    synonyms:
+      - "chronobiology"
+      - "circadian cycle"
+      - "suprachiasmatic nucleus"
+  sleep_deprivation:
+    name: "Sleep Deprivation"
+    synonyms:
+      - "sleep restriction"
+      - "sleep debt"
+      - "sleep loss"
+  insomnia:
+    name: "Insomnia"
+    synonyms:
+      - "insomnia disorder"
+      - "sleep onset insomnia"
+      - "sleep maintenance insomnia"
+  hypersomnia:
+    name: "Hypersomnia"
+    synonyms:
+      - "excessive daytime sleepiness"
+      - "narcolepsy"
+  obstructive_sleep_apnea:
+    name: "Obstructive Sleep Apnea"
+    synonyms:
+      - "sleep apnea"
+      - "osa"
+      - "upper airway resistance"
+  metabolism_disorders:
+    name: "Metabolism Disorders"
+    synonyms:
+      - "metabolic syndrome"
+      - "dyslipidemia"
+      - "hyperglycemia"
+  obesity:
+    name: "Obesity"
+    synonyms:
+      - "body mass index"
+      - "adiposity"
+      - "weight loss"
+  type2_diabetes:
+    name: "Type 2 Diabetes"
+    synonyms:
+      - "t2dm"
+      - "insulin resistance"
+      - "glucose intolerance"
+  insulin_signaling:
+    name: "Insulin Signaling"
+    synonyms:
+      - "insulin sensitivity"
+      - "glucose uptake"
+      - "homa-ir"
+  endocrine_disorders:
+    name: "Endocrine Disorders"
+    synonyms:
+      - "hormonal imbalance"
+      - "endocrinology"
+  stress_response:
+    name: "Stress Response"
+    synonyms:
+      - "hypothalamic pituitary adrenal axis"
+      - "cortisol"
+      - "hpa axis"
+  inflammation:
+    name: "Inflammation"
+    synonyms:
+      - "proinflammatory cytokines"
+      - "immune activation"
+      - "tnf-alpha"
+  oxidative_stress:
+    name: "Oxidative Stress"
+    synonyms:
+      - "reactive oxygen species"
+      - "antioxidant response"
+  cardiovascular_health:
+    name: "Cardiovascular Health"
+    synonyms:
+      - "hypertension"
+      - "atherosclerosis"
+      - "vascular function"
+  neurodegeneration:
+    name: "Neurodegeneration"
+    synonyms:
+      - "neuroinflammation"
+      - "alzheimer"
+      - "parkinson"
+  cognitive_function:
+    name: "Cognitive Function"
+    synonyms:
+      - "memory performance"
+      - "executive function"
+      - "attention"
+  mental_health:
+    name: "Mental Health"
+    synonyms:
+      - "anxiety"
+      - "depression"
+      - "mood disorders"
+  gut_microbiome:
+    name: "Gut Microbiome"
+    synonyms:
+      - "intestinal microbiota"
+      - "gut flora"
+  nutrition:
+    name: "Nutrition"
+    synonyms:
+      - "dietary intake"
+      - "macronutrients"
+      - "nutritional intervention"
+  exercise_physiology:
+    name: "Exercise Physiology"
+    synonyms:
+      - "physical activity"
+      - "aerobic training"
+      - "resistance training"
+  chrononutrition:
+    name: "Chrononutrition"
+    synonyms:
+      - "meal timing"
+      - "time restricted feeding"
+  reproductive_health:
+    name: "Reproductive Health"
+    synonyms:
+      - "fertility"
+      - "ovarian function"
+  pcos:
+    name: "Polycystic Ovary Syndrome"
+    synonyms:
+      - "polycystic ovary syndrome"
+      - "pcos"
+      - "hirsutism"
+  adolescent_health:
+    name: "Adolescent Health"
+    synonyms:
+      - "youth health"
+      - "teenager"
+  aging_longevity:
+    name: "Aging and Longevity"
+    synonyms:
+      - "gerontology"
+      - "healthy aging"
+      - "longevity"
+  immunometabolism:
+    name: "Immunometabolism"
+    synonyms:
+      - "immune metabolism"
+      - "metabolic inflammation"
+  liver_health:
+    name: "Liver Health"
+    synonyms:
+      - "hepatic steatosis"
+      - "non alcoholic fatty liver"
+  sleep_medicine:
+    name: "Sleep Medicine"
+    synonyms:
+      - "polysomnography"
+      - "sleep clinic"
+  neuroendocrine:
+    name: "Neuroendocrine"
+    synonyms:
+      - "neuropeptides"
+      - "pituitary hormones"
+  chronic_pain:
+    name: "Chronic Pain"
+    synonyms:
+      - "pain management"
+      - "nociception"
+  immune_disorders:
+    name: "Immune Disorders"
+    synonyms:
+      - "autoimmune"
+      - "immune dysregulation"
+  metabolic_brain:
+    name: "Metabolic Brain"
+    synonyms:
+      - "brain metabolism"
+      - "neurometabolism"
+  biomarker_discovery:
+    name: "Biomarker Discovery"
+    synonyms:
+      - "biomarkers"
+      - "diagnostic markers"

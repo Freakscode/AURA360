@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="6" time="6.231" timestamp="2025-10-27T20:35:54.523773-05:00" hostname="gabo288.local"><testcase classname="tests.e2e.test_full_integration_flow.TestE2EFullFlow" name="test_complete_advice_flow_mind_category" time="6.128"><failure message="assert 403 in [200, 201]&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;e2e.test_full_integration_flow.TestE2EFullFlow object at 0x106f62990&gt;
+verify_all_services = None
+ingest_test_documents = [{'doc_id': 'e2e-test-3a791dbb-f9c1-42ff-be7b-bf72f5440681-mind-meditation', 'metadata': {'category': 'mind', 'languag...io de gratitud y reconocer tres cosas positivas cada día aumenta la satisfacción vital y reduce síntomas depresivos.'}]
+auth_token = 'test-token-replace-with-real-auth'
+test_user_id = 'test-user-2756f835-9bc8-4070-8697-0d21b3792711'
+test_trace_id = 'e2e-test-3a791dbb-f9c1-42ff-be7b-bf72f5440681'
+
+    def test_complete_advice_flow_mind_category(
+        self,
+        verify_all_services: None,
+        ingest_test_documents: list[dict[str, Any]],
+        auth_token: str,
+        test_user_id: str,
+        test_trace_id: str,
+    ) -&gt; None:
+        """
+        Flujo completo: Cliente → Backend → Agentes → Vector Search → Respuesta.
+        Categoría: mind (mente).
+        """
+        # 1. Cliente envía solicitud al backend
+        request_payload = {
+            "user_id": test_user_id,
+            "category": "mind",
+            "metadata": {
+                "context": "Me siento estresado por el trabajo y necesito técnicas de relajación.",
+                "urgency": "medium",
+            },
+        }
+    
+        headers = {"Authorization": f"Bearer {auth_token}"}
+    
+        start_time = time.perf_counter()
+        response = requests.post(
+            f"{BACKEND_URL}/api/v1/holistic/advice",
+            json=request_payload,
+            headers=headers,
+            timeout=REQUEST_TIMEOUT,
+        )
+        total_latency_ms = (time.perf_counter() - start_time) * 1000
+    
+        # 2. Validar respuesta del backend
+&gt;       assert response.status_code in [200, 201]
+E       assert 403 in [200, 201]
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+tests/e2e/test_full_integration_flow.py:221: AssertionError</failure></testcase><testcase classname="tests.e2e.test_full_integration_flow.TestE2EFullFlow" name="test_complete_advice_flow_holistic_category" time="0.004"><failure message="assert 403 in [200, 201]&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;e2e.test_full_integration_flow.TestE2EFullFlow object at 0x10715de50&gt;
+verify_all_services = None
+ingest_test_documents = [{'doc_id': 'e2e-test-3a791dbb-f9c1-42ff-be7b-bf72f5440681-mind-meditation', 'metadata': {'category': 'mind', 'languag...io de gratitud y reconocer tres cosas positivas cada día aumenta la satisfacción vital y reduce síntomas depresivos.'}]
+auth_token = 'test-token-replace-with-real-auth'
+test_user_id = 'test-user-2756f835-9bc8-4070-8697-0d21b3792711'
+test_trace_id = 'e2e-test-3a791dbb-f9c1-42ff-be7b-bf72f5440681'
+
+    def test_complete_advice_flow_holistic_category(
+        self,
+        verify_all_services: None,
+        ingest_test_documents: list[dict[str, Any]],
+        auth_token: str,
+        test_user_id: str,
+        test_trace_id: str,
+    ) -&gt; None:
+        """
+        Flujo completo con categoría holistic (integral).
+        Debe integrar recomendaciones de múltiples dimensiones.
+        """
+        request_payload = {
+            "user_id": test_user_id,
+            "category": "holistic",
+            "metadata": {
+                "context": "Quiero un plan integral para mejorar mi bienestar general.",
+                "goals": ["reducir estrés", "aumentar energía", "conectar con propósito"],
+            },
+        }
+    
+        headers = {"Authorization": f"Bearer {auth_token}"}
+    
+        response = requests.post(
+            f"{BACKEND_URL}/api/v1/holistic/advice",
+            json=request_payload,
+            headers=headers,
+            timeout=REQUEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code in [200, 201]
+E       assert 403 in [200, 201]
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+tests/e2e/test_full_integration_flow.py:284: AssertionError</failure></testcase><testcase classname="tests.e2e.test_full_integration_flow.TestE2EFullFlow" name="test_vector_search_returns_relevant_results" time="0.007"><failure message="assert 0 &gt; 0&#10; +  where 0 = len([])">self = &lt;e2e.test_full_integration_flow.TestE2EFullFlow object at 0x1071636f0&gt;
+verify_all_services = None
+ingest_test_documents = [{'doc_id': 'e2e-test-3a791dbb-f9c1-42ff-be7b-bf72f5440681-mind-meditation', 'metadata': {'category': 'mind', 'languag...io de gratitud y reconocer tres cosas positivas cada día aumenta la satisfacción vital y reduce síntomas depresivos.'}]
+test_trace_id = 'e2e-test-3a791dbb-f9c1-42ff-be7b-bf72f5440681'
+
+    def test_vector_search_returns_relevant_results(
+        self,
+        verify_all_services: None,
+        ingest_test_documents: list[dict[str, Any]],
+        test_trace_id: str,
+    ) -&gt; None:
+        """
+        Valida que la búsqueda vectorial retorna resultados relevantes
+        para los documentos ingestados.
+        """
+        # Buscar sobre meditación (debe encontrar el documento mind)
+        search_payload = {
+            "query": "técnicas de meditación para reducir estrés",
+            "limit": 5,
+            "filter": {
+                "must": {
+                    "trace_id": test_trace_id,
+                }
+            },
+        }
+    
+        response = requests.post(
+            f"{VECTORIAL_SERVICE_URL}/search",
+            json=search_payload,
+            timeout=REQUEST_TIMEOUT,
+        )
+    
+        assert response.status_code == 200
+        data = response.json()
+    
+        assert "hits" in data
+        hits = data["hits"]
+&gt;       assert len(hits) &gt; 0
+E       assert 0 &gt; 0
+E        +  where 0 = len([])
+
+tests/e2e/test_full_integration_flow.py:329: AssertionError</failure></testcase><testcase classname="tests.e2e.test_full_integration_flow.TestE2EErrorScenarios" name="test_invalid_category_returns_error" time="0.004" /><testcase classname="tests.e2e.test_full_integration_flow.TestE2EErrorScenarios" name="test_unauthorized_request_returns_401" time="0.005"><failure message="assert 403 == 401&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;e2e.test_full_integration_flow.TestE2EErrorScenarios object at 0x10715df90&gt;
+verify_all_services = None
+test_user_id = 'test-user-2756f835-9bc8-4070-8697-0d21b3792711'
+
+    def test_unauthorized_request_returns_401(
+        self,
+        verify_all_services: None,
+        test_user_id: str,
+    ) -&gt; None:
+        """Valida que solicitudes sin autenticación retornan 401."""
+        request_payload = {
+            "user_id": test_user_id,
+            "category": "mind",
+            "metadata": {},
+        }
+    
+        # Sin headers de autorización
+        response = requests.post(
+            f"{BACKEND_URL}/api/v1/holistic/advice",
+            json=request_payload,
+            timeout=REQUEST_TIMEOUT,
+        )
+    
+&gt;       assert response.status_code == 401
+E       assert 403 == 401
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+tests/e2e/test_full_integration_flow.py:385: AssertionError</failure></testcase><testcase classname="tests.e2e.test_full_integration_flow.TestE2EPerformance" name="test_concurrent_requests_are_handled" time="0.009"><failure message="KeyError: 'status'">self = &lt;e2e.test_full_integration_flow.TestE2EPerformance object at 0x10715e0d0&gt;
+verify_all_services = None
+ingest_test_documents = [{'doc_id': 'e2e-test-3a791dbb-f9c1-42ff-be7b-bf72f5440681-mind-meditation', 'metadata': {'category': 'mind', 'languag...io de gratitud y reconocer tres cosas positivas cada día aumenta la satisfacción vital y reduce síntomas depresivos.'}]
+auth_token = 'test-token-replace-with-real-auth'
+test_user_id = 'test-user-2756f835-9bc8-4070-8697-0d21b3792711'
+
+    def test_concurrent_requests_are_handled(
+        self,
+        verify_all_services: None,
+        ingest_test_documents: list[dict[str, Any]],
+        auth_token: str,
+        test_user_id: str,
+    ) -&gt; None:
+        """
+        Valida que el sistema puede manejar múltiples solicitudes concurrentes.
+        """
+        import concurrent.futures
+    
+        def make_request(category: str) -&gt; dict[str, Any]:
+            """Hace una solicitud al backend."""
+            payload = {
+                "user_id": test_user_id,
+                "category": category,
+                "metadata": {"test": "concurrent"},
+            }
+            headers = {"Authorization": f"Bearer {auth_token}"}
+    
+            response = requests.post(
+                f"{BACKEND_URL}/api/v1/holistic/advice",
+                json=payload,
+                headers=headers,
+                timeout=REQUEST_TIMEOUT,
+            )
+            return response.json()
+    
+        # Hacer 3 solicitudes concurrentes
+        categories = ["mind", "body", "soul"]
+    
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            futures = [executor.submit(make_request, cat) for cat in categories]
+            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+    
+        # Todas las solicitudes deben completarse exitosamente
+        assert len(results) == 3
+        for result in results:
+&gt;           assert result["status"] == "completed"
+                   ^^^^^^^^^^^^^^^^
+E           KeyError: 'status'
+
+tests/e2e/test_full_integration_flow.py:430: KeyError</failure></testcase></testsuite></testsuites>

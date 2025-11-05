@@ -1,0 +1,331 @@
+// ============================================
+// Modal Component Styles
+// ============================================
+
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// --------------------------------------------
+// Modal Overlay/Backdrop
+// --------------------------------------------
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: $modal-backdrop-bg;
+  z-index: $z-index-modal-backdrop;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-4;
+  overflow-y: auto;
+
+  @include fade-in;
+
+  // Click outside to close
+  &[data-clickable='true'] {
+    cursor: pointer;
+  }
+}
+
+// --------------------------------------------
+// Modal Container
+// --------------------------------------------
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: $modal-max-width;
+  background-color: $color-bg-primary;
+  border-radius: $modal-border-radius;
+  box-shadow: $shadow-2xl;
+  z-index: $z-index-modal;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+
+  @include slide-in-down;
+
+  @media (max-width: $breakpoint-sm) {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+// --------------------------------------------
+// Modal Header
+// --------------------------------------------
+.modal__header {
+  @include flex-between;
+  padding: $modal-padding;
+  border-bottom: 1px solid $color-border-light;
+  flex-shrink: 0;
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+  }
+}
+
+.modal__close {
+  @include button-reset;
+  @include flex-center;
+  width: 2rem;
+  height: 2rem;
+  color: $color-text-muted;
+  font-size: $font-size-2xl;
+  line-height: 1;
+  border-radius: $radius-base;
+  transition: $transition-all;
+
+  &:hover {
+    background-color: $color-bg-secondary;
+    color: $color-text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+// --------------------------------------------
+// Modal Body
+// --------------------------------------------
+.modal__body {
+  padding: $modal-padding;
+  overflow-y: auto;
+  flex: 1;
+
+  @include custom-scrollbar;
+
+  &:first-child {
+    border-top-left-radius: $modal-border-radius;
+    border-top-right-radius: $modal-border-radius;
+  }
+
+  &:last-child {
+    border-bottom-left-radius: $modal-border-radius;
+    border-bottom-right-radius: $modal-border-radius;
+  }
+}
+
+// --------------------------------------------
+// Modal Footer
+// --------------------------------------------
+.modal__footer {
+  @include flex-end;
+  gap: $space-3;
+  padding: $modal-padding;
+  border-top: 1px solid $color-border-light;
+  flex-shrink: 0;
+
+  &--center {
+    justify-content: center;
+  }
+
+  &--between {
+    justify-content: space-between;
+  }
+}
+
+// --------------------------------------------
+// Modal Sizes
+// --------------------------------------------
+.modal--sm {
+  max-width: 20rem; // 320px
+}
+
+.modal--md {
+  max-width: 28rem; // 448px
+}
+
+.modal--lg {
+  max-width: 48rem; // 768px
+}
+
+.modal--xl {
+  max-width: 64rem; // 1024px
+}
+
+.modal--full {
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+// --------------------------------------------
+// Modal with Form
+// --------------------------------------------
+.modal--form {
+  .modal__body {
+    padding: $space-6 $modal-padding;
+  }
+
+  .form-group {
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// --------------------------------------------
+// Modal Variants
+// --------------------------------------------
+
+// Centered Modal
+.modal--centered {
+  .modal-overlay {
+    align-items: center;
+  }
+}
+
+// Modal without padding
+.modal--no-padding {
+  .modal__body {
+    padding: 0;
+  }
+}
+
+// Scrollable Modal
+.modal--scrollable {
+  .modal__body {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+}
+
+// --------------------------------------------
+// Confirmation Modal
+// --------------------------------------------
+.modal--confirm {
+  max-width: 28rem;
+
+  .modal__body {
+    padding: $space-8 $modal-padding;
+    text-align: center;
+  }
+
+  .modal__icon {
+    @include flex-center;
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto $space-4;
+    border-radius: $radius-full;
+
+    svg {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    &--warning {
+      background-color: $color-warning-100;
+      color: $color-warning-700;
+    }
+
+    &--error {
+      background-color: $color-error-100;
+      color: $color-error-700;
+    }
+
+    &--success {
+      background-color: $color-success-100;
+      color: $color-success-700;
+    }
+
+    &--info {
+      background-color: $color-info-100;
+      color: $color-info-700;
+    }
+  }
+
+  .modal__title {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    margin-bottom: $space-3;
+  }
+
+  .modal__message {
+    color: $color-text-secondary;
+    line-height: $line-height-relaxed;
+  }
+}
+
+// --------------------------------------------
+// Side Panel/Drawer Modal
+// --------------------------------------------
+.modal--drawer {
+  max-width: none;
+  width: 100%;
+  max-width: 28rem;
+  height: 100vh;
+  max-height: 100vh;
+  margin: 0;
+  border-radius: 0;
+  animation: slideInRight $transition-base ease-out;
+
+  &.drawer-left {
+    animation: slideInLeft $transition-base ease-out;
+  }
+
+  .modal-overlay {
+    justify-content: flex-end;
+  }
+
+  &.drawer-left .modal-overlay {
+    justify-content: flex-start;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+// --------------------------------------------
+// Loading Modal
+// --------------------------------------------
+.modal--loading {
+  max-width: 20rem;
+
+  .modal__body {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-10 $modal-padding;
+  }
+
+  .spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid $color-gray-200;
+    border-top-color: $color-primary-500;
+    border-radius: $radius-full;
+    animation: spinner 0.8s linear infinite;
+  }
+
+  .loading-text {
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+}

@@ -1,0 +1,634 @@
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CareRelationshipService } from '../../services/care-relationship.service';
+import { CareRelationshipWithPatient } from '../../models/care-relationship.model';
+import { AssignPatientModalComponent } from '../../components/assign-patient-modal/assign-patient-modal.component';
+
+type SortField = 'name' | 'email' | 'date' | null;
+type SortDirection = 'asc' | 'desc';
+type FilterStatus = 'all' | 'active' | 'inactive';
+
+@Component({
+  selector: 'app-patients-list',
+  standalone: true,
+  imports: [CommonModule, RouterLink, FormsModule, AssignPatientModalComponent],
+  template: `
+    <div class="patients-list">
+      <header class="patients-list__header">
+        <div class="header__content">
+          <div>
+            <h1>Mis Pacientes</h1>
+            <p class="patients-list__subtitle">
+              Pacientes bajo mi cuidado profesional
+            </p>
+          </div>
+          <button class="btn btn--primary" (click)="openAssignModal()">
+            + Asignar Paciente
+          </button>
+        </div>
+      </header>
+
+      <!-- Barra de búsqueda y filtros -->
+      <div class="filters-bar">
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Buscar por nombre o email..."
+            class="search-input"
+          />
+          @if (searchQuery()) {
+            <button class="search-clear" (click)="clearSearch()">✕</button>
+          }
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Estado:</label>
+          <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()" class="filter-select">
+            <option value="all">Todos</option>
+            <option value="active">Activos</option>
+            <option value="inactive">Inactivos</option>
+          </select>
+        </div>
+
+        <div class="sort-group">
+          <label class="filter-label">Ordenar:</label>
+          <button
+            class="sort-btn"
+            [class.active]="sortField() === 'name'"
+            (click)="toggleSort('name')">
+            Nombre
+            @if (sortField() === 'name') {
+              <span class="sort-icon">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+            }
+          </button>
+          <button
+            class="sort-btn"
+            [class.active]="sortField() === 'date'"
+            (click)="toggleSort('date')">
+            Fecha
+            @if (sortField() === 'date') {
+              <span class="sort-icon">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+            }
+          </button>
+        </div>
+      </div>
+
+      @if (careService.loading()) {
+        <div class="patients-list__loading">
+          <p>Cargando pacientes...</p>
+        </div>
+      } @else if (careService.error()) {
+        <div class="patients-list__error">
+          <p>Error: {{ careService.error() }}</p>
+        </div>
+      } @else {
+        <div class="patients-list__summary">
+          <div class="summary-card">
+            <span class="summary-card__value">{{ activePatients().length }}</span>
+            <span class="summary-card__label">Activos</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__value">{{ inactivePatients().length }}</span>
+            <span class="summary-card__label">Inactivos</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__value">{{ careService.patients().length }}</span>
+            <span class="summary-card__label">Total</span>
+          </div>
+          <div class="summary-card summary-card--highlight">
+            <span class="summary-card__value">{{ filteredPatients().length }}</span>
+            <span class="summary-card__label">Mostrando</span>
+          </div>
+        </div>
+
+        @if (filteredPatients().length === 0 && careService.patients().length > 0) {
+          <div class="patients-list__empty">
+            <p>No se encontraron pacientes con los criterios de búsqueda.</p>
+            <button class="btn btn--secondary" (click)="clearFilters()">Limpiar Filtros</button>
+          </div>
+        } @else if (careService.patients().length === 0) {
+          <div class="patients-list__empty">
+            <p>No tienes pacientes asignados aún.</p>
+          </div>
+        } @else {
+          <div class="patients-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Teléfono</th>
+                  <th>Edad</th>
+                  <th>Género</th>
+                  <th>Contexto</th>
+                  <th>Estado</th>
+                  <th>Fecha Inicio</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (relationship of filteredPatients(); track relationship.id) {
+                  <tr
+                    [class.inactive]="relationship.status !== 'active'"
+                    class="clickable"
+                    [routerLink]="['/profesional/pacientes', relationship.id]">
+                    <td class="patient-name">{{ relationship.patient.full_name }}</td>
+                    <td>{{ relationship.patient.email }}</td>
+                    <td>{{ relationship.patient.phone_number || '-' }}</td>
+                    <td>{{ relationship.patient.age || '-' }}</td>
+                    <td>{{ relationship.patient.gender || '-' }}</td>
+                    <td>
+                      <span [class]="'context-badge context-badge--' + relationship.context_type">
+                        {{ relationship.context_type === 'independent' ? 'Independiente' : 'Institucional' }}
+                      </span>
+                    </td>
+                    <td>
+                      <span [class]="'status-badge status-badge--' + relationship.status">
+                        {{ getStatusLabel(relationship.status) }}
+                      </span>
+                    </td>
+                    <td>{{ formatDate(relationship.started_at) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      <!-- Modal de asignación -->
+      <app-assign-patient-modal
+        [isOpen]="showAssignModal()"
+        (closed)="closeAssignModal()"
+        (patientAssigned)="onPatientAssigned()" />
+    </div>
+  `,
+  styles: [
+    `
+      .patients-list {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .patients-list__header {
+        margin-bottom: 2rem;
+
+        h1 {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #111827;
+          margin: 0 0 0.5rem 0;
+        }
+      }
+
+      .patients-list__subtitle {
+        font-size: 1rem;
+        color: #6b7280;
+        margin: 0;
+      }
+
+      .header__content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+      }
+
+      .filters-bar {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.5rem;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .search-box {
+        flex: 1;
+        min-width: 300px;
+        position: relative;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #10b981;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+      }
+
+      .search-clear {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #6b7280;
+        cursor: pointer;
+        font-size: 1.25rem;
+        padding: 0.25rem;
+        line-height: 1;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #ef4444;
+        }
+      }
+
+      .filter-group,
+      .sort-group {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+
+      .filter-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .filter-select {
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #10b981;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+      }
+
+      .sort-btn {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        background: white;
+        color: #374151;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        &:hover {
+          background: #f9fafb;
+          border-color: #10b981;
+        }
+
+        &.active {
+          background: #10b981;
+          color: white;
+          border-color: #10b981;
+        }
+      }
+
+      .sort-icon {
+        font-size: 1rem;
+        line-height: 1;
+      }
+
+      .summary-card--highlight {
+        background: #d1fae5;
+        border: 1px solid #10b981;
+      }
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.875rem;
+
+        &--primary {
+          background: #10b981;
+          color: white;
+
+          &:hover {
+            background: #059669;
+          }
+        }
+
+        &--secondary {
+          background: #f3f4f6;
+          color: #374151;
+
+          &:hover {
+            background: #e5e7eb;
+          }
+        }
+      }
+
+      .patients-list__loading,
+      .patients-list__error,
+      .patients-list__empty {
+        padding: 3rem;
+        text-align: center;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+
+        p {
+          margin: 0;
+          color: #6b7280;
+        }
+      }
+
+      .patients-list__error {
+        border-color: #fca5a5;
+        background: #fef2f2;
+
+        p {
+          color: #dc2626;
+        }
+      }
+
+      .patients-list__summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .summary-card {
+        padding: 1.5rem;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .summary-card__value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .summary-card__label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .patients-table {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        overflow: hidden;
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        thead {
+          background: #f9fafb;
+          border-bottom: 1px solid #e5e7eb;
+
+          th {
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+        }
+
+        tbody {
+          tr {
+            border-bottom: 1px solid #e5e7eb;
+            transition: all 0.2s;
+
+            &.clickable {
+              cursor: pointer;
+            }
+
+            &:hover {
+              background: #f9fafb;
+              transform: translateX(4px);
+            }
+
+            &.inactive {
+              opacity: 0.6;
+            }
+
+            &:last-child {
+              border-bottom: none;
+            }
+          }
+
+          td {
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: #111827;
+          }
+        }
+      }
+
+      .patient-name {
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .context-badge,
+      .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .context-badge--independent {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      .context-badge--institutional {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .status-badge--active {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      .status-badge--inactive,
+      .status-badge--ended {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+    `,
+  ],
+})
+export class PatientsListComponent implements OnInit {
+  readonly careService = inject(CareRelationshipService);
+
+  // Filtros y búsqueda
+  readonly searchQuery = signal('');
+  readonly filterStatus = signal<FilterStatus>('all');
+  readonly sortField = signal<SortField>(null);
+  readonly sortDirection = signal<SortDirection>('asc');
+  readonly showAssignModal = signal(false);
+
+  // Datos computados
+  readonly activePatients = computed(() =>
+    this.careService.patients().filter((p) => p.status === 'active')
+  );
+
+  readonly inactivePatients = computed(() =>
+    this.careService.patients().filter((p) => p.status !== 'active')
+  );
+
+  readonly filteredPatients = computed(() => {
+    let patients = [...this.careService.patients()];
+
+    // Aplicar búsqueda
+    const query = this.searchQuery().toLowerCase();
+    if (query) {
+      patients = patients.filter(
+        (p) =>
+          p.patient.full_name.toLowerCase().includes(query) ||
+          p.patient.email.toLowerCase().includes(query)
+      );
+    }
+
+    // Aplicar filtro de estado
+    const status = this.filterStatus();
+    if (status === 'active') {
+      patients = patients.filter((p) => p.status === 'active');
+    } else if (status === 'inactive') {
+      patients = patients.filter((p) => p.status !== 'active');
+    }
+
+    // Aplicar ordenamiento
+    const field = this.sortField();
+    const direction = this.sortDirection();
+
+    if (field === 'name') {
+      patients.sort((a, b) => {
+        const comparison = a.patient.full_name.localeCompare(
+          b.patient.full_name
+        );
+        return direction === 'asc' ? comparison : -comparison;
+      });
+    } else if (field === 'date') {
+      patients.sort((a, b) => {
+        const dateA = new Date(a.started_at).getTime();
+        const dateB = new Date(b.started_at).getTime();
+        const comparison = dateA - dateB;
+        return direction === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    return patients;
+  });
+
+  async ngOnInit(): Promise<void> {
+    await this.loadPatients();
+  }
+
+  private async loadPatients(): Promise<void> {
+    try {
+      await this.careService.loadMyPatients();
+    } catch (error) {
+      console.error('Error al cargar pacientes:', error);
+    }
+  }
+
+  onSearchChange(): void {
+    // La búsqueda se actualiza automáticamente por el signal
+  }
+
+  onFilterChange(): void {
+    // El filtro se actualiza automáticamente por el signal
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+  }
+
+  clearFilters(): void {
+    this.searchQuery.set('');
+    this.filterStatus.set('all');
+    this.sortField.set(null);
+  }
+
+  toggleSort(field: SortField): void {
+    if (this.sortField() === field) {
+      // Si ya está ordenado por este campo, cambiar dirección
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Si es un campo nuevo, ordenar ascendente
+      this.sortField.set(field);
+      this.sortDirection.set('asc');
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      active: 'Activo',
+      inactive: 'Inactivo',
+      ended: 'Finalizado',
+    };
+    return labels[status] || status;
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  openAssignModal(): void {
+    this.showAssignModal.set(true);
+  }
+
+  closeAssignModal(): void {
+    this.showAssignModal.set(false);
+  }
+
+  async onPatientAssigned(): Promise<void> {
+    // El servicio ya recarga la lista automáticamente
+    // Mostrar mensaje de éxito
+    alert('Paciente asignado exitosamente');
+  }
+}

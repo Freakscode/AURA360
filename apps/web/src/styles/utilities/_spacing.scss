@@ -1,0 +1,137 @@
+// ============================================
+// Spacing Utilities
+// ============================================
+
+@use 'sass:meta';
+@use '../variables' as *;
+
+// --------------------------------------------
+// Margin Utilities
+// --------------------------------------------
+$spacing-values: (
+  0: $space-0,
+  1: $space-1,
+  2: $space-2,
+  3: $space-3,
+  4: $space-4,
+  5: $space-5,
+  6: $space-6,
+  7: $space-7,
+  8: $space-8,
+  10: $space-10,
+  12: $space-12,
+  16: $space-16,
+  20: $space-20,
+  24: $space-24
+);
+
+$spacing-directions: (
+  't': 'top',
+  'r': 'right',
+  'b': 'bottom',
+  'l': 'left',
+  'x': ('left', 'right'),
+  'y': ('top', 'bottom')
+);
+
+// Generate margin utilities
+@each $key, $value in $spacing-values {
+  // All sides: m-4
+  .m-#{$key} {
+    margin: $value;
+  }
+
+  // Individual sides: mt-4, mr-4, mb-4, ml-4
+  @each $dir-key, $dir-value in $spacing-directions {
+    .m#{$dir-key}-#{$key} {
+      @if meta.type-of($dir-value) == 'list' {
+        @each $side in $dir-value {
+          margin-#{$side}: $value;
+        }
+      } @else {
+        margin-#{$dir-value}: $value;
+      }
+    }
+  }
+
+  // Negative margins
+  @if $key != 0 {
+    .m-n#{$key} {
+      margin: -$value;
+    }
+
+    @each $dir-key, $dir-value in $spacing-directions {
+      .m#{$dir-key}-n#{$key} {
+        @if meta.type-of($dir-value) == 'list' {
+          @each $side in $dir-value {
+            margin-#{$side}: -$value;
+          }
+        } @else {
+          margin-#{$dir-value}: -$value;
+        }
+      }
+    }
+  }
+}
+
+// Auto margin
+.m-auto { margin: auto; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.my-auto { margin-top: auto; margin-bottom: auto; }
+.mt-auto { margin-top: auto; }
+.mr-auto { margin-right: auto; }
+.mb-auto { margin-bottom: auto; }
+.ml-auto { margin-left: auto; }
+
+// --------------------------------------------
+// Padding Utilities
+// --------------------------------------------
+@each $key, $value in $spacing-values {
+  // All sides: p-4
+  .p-#{$key} {
+    padding: $value;
+  }
+
+  // Individual sides: pt-4, pr-4, pb-4, pl-4
+  @each $dir-key, $dir-value in $spacing-directions {
+    .p#{$dir-key}-#{$key} {
+      @if meta.type-of($dir-value) == 'list' {
+        @each $side in $dir-value {
+          padding-#{$side}: $value;
+        }
+      } @else {
+        padding-#{$dir-value}: $value;
+      }
+    }
+  }
+}
+
+// --------------------------------------------
+// Gap Utilities (for flexbox/grid)
+// --------------------------------------------
+@each $key, $value in $spacing-values {
+  .gap-#{$key} {
+    gap: $value;
+  }
+
+  .gap-x-#{$key} {
+    column-gap: $value;
+  }
+
+  .gap-y-#{$key} {
+    row-gap: $value;
+  }
+}
+
+// --------------------------------------------
+// Space Between (for flex children)
+// --------------------------------------------
+@each $key, $value in $spacing-values {
+  .space-x-#{$key} > :not([hidden]) ~ :not([hidden]) {
+    margin-left: $value;
+  }
+
+  .space-y-#{$key} > :not([hidden]) ~ :not([hidden]) {
+    margin-top: $value;
+  }
+}

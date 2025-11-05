@@ -1,0 +1,168 @@
+<!-- Layout principal para la experiencia de login -->
+<div class="auth-page" role="main">
+  <main class="auth-main">
+    <div class="auth-main__card">
+      <header class="login-header">
+        <div class="login-logo-container" aria-hidden="true">
+          <img src="/aura/ICONOAura.png" alt="" class="login-logo" loading="lazy" />
+        </div>
+        <h2 class="login-title">Iniciar sesión</h2>
+        <p class="login-subtitle">Ingresa con las credenciales de tu organización</p>
+      </header>
+
+      @if (error()) {
+        <div class="alert alert-error" role="alert" aria-live="assertive">
+          <span class="alert-icon" aria-hidden="true">⚠️</span>
+          <div class="alert-content">
+            <p class="alert-message">{{ error()!.message }}</p>
+            @if (error()!.canRetry) {
+              <button
+                type="button"
+                class="alert-dismiss"
+                (click)="clearError()"
+                aria-label="Cerrar alerta"
+              >
+                ×
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <form
+        [formGroup]="loginForm"
+        (ngSubmit)="onSubmit()"
+        class="login-form"
+        novalidate
+        aria-label="Formulario de inicio de sesión"
+      >
+        <div class="form-group">
+          <label for="email" class="form-label">
+            Email
+            <span class="form-required" aria-label="requerido">*</span>
+          </label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="form-control"
+            [class.form-control-error]="isFieldInvalid('email')"
+            placeholder="tu@email.com"
+            autocomplete="email"
+            [attr.aria-invalid]="isFieldInvalid('email')"
+            [attr.aria-describedby]="isFieldInvalid('email') ? 'email-error' : null"
+          />
+
+          @if (isFieldInvalid('email')) {
+            <span id="email-error" class="form-error" role="alert">
+              {{ getFieldError('email') }}
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">
+            Contraseña
+            <span class="form-required" aria-label="requerido">*</span>
+          </label>
+          <div class="form-input-group">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              class="form-control"
+              [class.form-control-error]="isFieldInvalid('password')"
+              placeholder="Tu contraseña"
+              autocomplete="current-password"
+              [attr.aria-invalid]="isFieldInvalid('password')"
+              [attr.aria-describedby]="isFieldInvalid('password') ? 'password-error' : null"
+            />
+
+            <button
+              type="button"
+              class="form-toggle-password"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [disabled]="loginForm.disabled"
+            >
+              @if (showPassword()) {
+                <svg
+                  class="icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 5C5.636 5 2 12 2 12s3.636 7 10 7 10-7 10-7-3.636-7-10-7z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+                </svg>
+              } @else {
+                <svg
+                  class="icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M3 3l18 18M10.5 10.677a2 2 0 002.823 2.823"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="M7.362 7.561C5.68 8.74 4.279 10.42 3 12c1.889 2.991 5.282 6 9 6 1.55 0 3.043-.523 4.395-1.35M12 6c4.008 0 6.701 3.158 9 6a15.66 15.66 0 01-1.658 2.058"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                </svg>
+              }
+            </button>
+          </div>
+
+          @if (isFieldInvalid('password')) {
+            <span id="password-error" class="form-error" role="alert">
+              {{ getFieldError('password') }}
+            </span>
+          }
+        </div>
+
+        <div class="form-group form-checkbox-group">
+          <label class="form-checkbox-label">
+            <input type="checkbox" formControlName="rememberMe" class="form-checkbox" />
+            <span class="form-checkbox-text">Recordar mi sesión</span>
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="!canSubmit()"
+          [attr.aria-busy]="isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            <span class="btn-spinner" aria-hidden="true"></span>
+            @if (status() === 'redirecting') {
+              <span>Redirigiendo...</span>
+            } @else {
+              <span>Iniciando sesión...</span>
+            }
+          } @else {
+            <span>Iniciar sesión</span>
+          }
+        </button>
+      </form>
+
+      <footer class="login-footer">
+        <a class="login-link" routerLink="/auth/forgot-password"> ¿Olvidaste tu contraseña? </a>
+        <p class="login-footer-text">
+          ¿No tienes cuenta?
+          <a class="login-link login-link-bold" routerLink="/auth/register">Regístrate</a>
+        </p>
+      </footer>
+    </div>
+  </main>
+</div>

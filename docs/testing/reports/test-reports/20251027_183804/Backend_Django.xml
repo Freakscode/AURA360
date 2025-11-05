@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.087" timestamp="2025-10-27T18:39:27.993920-05:00" hostname="gabo288.local"><testcase classname="" name="holistic.tests.test_backend_integration" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/freakscode/Proyectos 2025/AURA360/backend/holistic/tests/test_backend_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+holistic/tests/test_backend_integration.py:27: in &lt;module&gt;
+    from django.conf import settings
+E   ModuleNotFoundError: No module named 'django'</error></testcase></testsuite></testsuites>

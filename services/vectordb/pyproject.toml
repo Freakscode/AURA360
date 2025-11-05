@@ -1,0 +1,45 @@
+[project]
+name = "vectosvc"
+version = "0.1.0"
+description = "Vector DB service (Qdrant + FastAPI + Celery)"
+authors = [{name = "AURA365", email = "dev@example.com"}]
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.24",
+  "pydantic>=2.6",
+  "pydantic-settings>=2.2",
+  "qdrant-client>=1.8",
+  "numpy>=1.26",
+  "orjson>=3.9",
+  "loguru>=0.7",
+  "httpx>=0.25",
+  "celery>=5.3",
+  "redis>=5.0",
+  "fastembed>=0.4.0",
+  "lxml>=4.9",
+  "pymupdf>=1.23",
+  "langdetect>=1.0.9",
+  "pyyaml>=6.0",
+  "google-cloud-storage>=3.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.1",
+]
+gcs = ["google-cloud-storage>=2.16"]
+
+[tool.setuptools]
+package-dir = { "" = "." }
+
+[tool.setuptools.packages.find]
+include = ["vectosvc*"]
+exclude = ["config*", "scripts*"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
