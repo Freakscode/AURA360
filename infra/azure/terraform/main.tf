@@ -124,10 +124,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   network_profile {
-    network_plugin     = "azure"
-    network_policy     = "azure"
-    dns_service_ip     = "10.2.0.10"
-    service_cidr       = "10.2.0.0/16"
+    network_plugin = "azure"
+    network_policy = "azure"
+    dns_service_ip = "10.2.0.10"
+    service_cidr   = "10.2.0.0/16"
   }
 
   dynamic "oms_agent" {
