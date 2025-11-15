@@ -1,0 +1,144 @@
+name: deploy-azure
+
+on:
+  push:
+    paths:
+      - 'infra/azure/**'
+      - '.github/workflows/deploy-azure.yml'
+  pull_request:
+    paths:
+      - 'infra/azure/**'
+      - '.github/workflows/deploy-azure.yml'
+  workflow_dispatch:
+    inputs:
+      tf_environment:
+        description: 'Nombre del entorno (dev/stg/prod)'
+        required: true
+        default: 'prod'
+      tfvars_file:
+        description: 'Ruta al archivo tfvars a usar'
+        required: true
+        default: 'infra/azure/terraform/envs/prod.tfvars'
+      auto_apply:
+        description: 'Aplicar automáticamente los cambios aprobados'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+env:
+  TF_WORKING_DIR: infra/azure/terraform
+  TFVARS_FILE: ${{ github.event.inputs.tfvars_file || 'infra/azure/terraform/envs/prod.tfvars' }}
+  TF_ENVIRONMENT: ${{ github.event.inputs.tf_environment || 'prod' }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform FMT
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_STATE_KEY }}"
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -var-file="${{ env.TFVARS_FILE }}" -out=tfplan
+
+      - name: Subir plan como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ env.TF_ENVIRONMENT }}
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+
+      - name: Publicar resumen del plan
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `Terraform plan completado para **${process.env.TF_ENVIRONMENT}**. Descarga el artefacto **tfplan-${process.env.TF_ENVIRONMENT}** para aplicar.`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  apply:
+    needs: plan
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.auto_apply == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Descargar plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ env.TF_ENVIRONMENT }}
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_STATE_KEY }}"
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Resumen post-apply
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `Terraform apply ejecutado para **${process.env.TF_ENVIRONMENT}**.`;
+            github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              description: body,
+              context: 'deploy-azure'
+            });
