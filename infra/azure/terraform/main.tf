@@ -55,17 +55,6 @@ resource "azurerm_subnet" "aks" {
   resource_group_name  = azurerm_resource_group.core.name
   virtual_network_name = azurerm_virtual_network.core.name
   address_prefixes     = [var.aks_subnet_cidr]
-
-  delegation {
-    name = "aks-delegation"
-    service_delegation {
-      name = "Microsoft.ContainerService/managedClusters"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"
-      ]
-    }
-  }
 }
 
 resource "azurerm_subnet" "services" {
@@ -139,7 +128,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
     network_policy     = "azure"
     dns_service_ip     = "10.2.0.10"
     service_cidr       = "10.2.0.0/16"
-    docker_bridge_cidr = "172.17.0.1/16"
   }
 
   dynamic "oms_agent" {
