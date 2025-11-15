@@ -23,14 +23,14 @@ resource "azurerm_log_analytics_workspace" "main" {
 }
 
 resource "azurerm_storage_account" "core" {
-  name                     = replace("${local.name_prefix}core", "-", "")
-  resource_group_name      = azurerm_resource_group.core.name
-  location                 = azurerm_resource_group.core.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  min_tls_version          = "TLS1_2"
+  name                            = replace("${local.name_prefix}core", "-", "")
+  resource_group_name             = azurerm_resource_group.core.name
+  location                        = azurerm_resource_group.core.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
-  tags                     = local.tags
+  tags                            = local.tags
 }
 
 resource "azurerm_container_registry" "acr" {
@@ -135,10 +135,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   network_profile {
-    network_plugin    = "azure"
-    network_policy    = "azure"
-    dns_service_ip    = "10.2.0.10"
-    service_cidr      = "10.2.0.0/16"
+    network_plugin     = "azure"
+    network_policy     = "azure"
+    dns_service_ip     = "10.2.0.10"
+    service_cidr       = "10.2.0.0/16"
     docker_bridge_cidr = "172.17.0.1/16"
   }
 
