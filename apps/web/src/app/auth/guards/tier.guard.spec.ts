@@ -6,9 +6,6 @@ import { tierGuard } from './tier.guard';
 import { SupabaseClientService } from '../services/supabase-client.service';
 
 describe('tierGuard', () => {
-  const route = {} as ActivatedRouteSnapshot;
-  const state = {} as RouterStateSnapshot;
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -22,7 +19,8 @@ describe('tierGuard', () => {
   });
 
   it('should block navigation while tier logic is a placeholder', () => {
-    const canActivate = TestBed.runInInjectionContext(() => tierGuard(route, state));
+    const guard = tierGuard();
+    const canActivate = TestBed.runInInjectionContext(() => guard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
     expect(canActivate).toBeFalse();
   });
 });

@@ -28,7 +28,41 @@ class QdrantStore:
         self.client = client or QdrantClient(url=settings.qdrant_url, **grpc_kwargs)
         self.collection = settings.collection_name
 
-    def ensure_collection(self, vector_size: int, distance: str | None = None, on_disk: bool = True) -> None:
+    def get_collection_for_source_type(self, source_type: Optional[str]) -> str:
+        """
+        Determina la colección de Qdrant basándose en el source_type.
+
+        Routing logic:
+        - source_type == "user_context" → colección "user_context"
+        - Cualquier otro caso → colección por defecto (settings.collection_name)
+
+        Args:
+            source_type: Tipo de fuente del documento
+
+        Returns:
+            Nombre de la colección de Qdrant
+        """
+        if source_type == "user_context":
+            return "user_context"
+        return settings.collection_name
+
+    def ensure_collection(
+        self,
+        vector_size: int,
+        distance: str | None = None,
+        on_disk: bool = True,
+        collection_name: Optional[str] = None,
+    ) -> None:
+        """Ensure collection exists with proper configuration.
+
+        Args:
+            vector_size: Dimensionality of vectors
+            distance: Distance metric (cosine, dot, euclid)
+            on_disk: Store vectors on disk to save RAM
+            collection_name: Target collection (defaults to self.collection)
+        """
+        target_collection = collection_name or self.collection
+
         distance = (distance or settings.vector_distance).lower()
         dmap = {
             "cosine": qm.Distance.COSINE,
@@ -42,16 +76,21 @@ class QdrantStore:
         )
         exists = False
         try:
-            self.client.get_collection(self.collection)
+            self.client.get_collection(target_collection)
             exists = True
         except Exception:
             exists = False
 
         if not exists:
-            logger.info("Creating collection '{}' (size={}, distance={}, on_disk={})",
-                        self.collection, vector_size, distance, on_disk)
+            logger.info(
+                "Creating collection '{}' (size={}, distance={}, on_disk={})",
+                target_collection,
+                vector_size,
+                distance,
+                on_disk,
+            )
             self.client.create_collection(
-                collection_name=self.collection,
+                collection_name=target_collection,
                 vectors_config=params,
                 hnsw_config=qm.HnswConfigDiff(m=16, ef_construct=256),
                 optimizers_config=qm.OptimizersConfigDiff(
@@ -62,24 +101,33 @@ class QdrantStore:
             )
 
         # Useful payload indexes for typical filters
-        self._ensure_payload_index("doc_id", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("category", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("locale", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("lang", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("source_type", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("topics", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("journal", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("year", qm.PayloadSchemaType.INTEGER)
-        self._ensure_payload_index("doc_version", qm.PayloadSchemaType.INTEGER)
-        self._ensure_payload_index("version", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("created_at", qm.PayloadSchemaType.INTEGER)
-        self._ensure_payload_index("embedding_model", qm.PayloadSchemaType.KEYWORD)
-        self._ensure_payload_index("confidence_score", qm.PayloadSchemaType.FLOAT)
+        self._ensure_payload_index("doc_id", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("category", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("locale", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("lang", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("source_type", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("topics", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("journal", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("year", qm.PayloadSchemaType.INTEGER, target_collection)
+        self._ensure_payload_index("doc_version", qm.PayloadSchemaType.INTEGER, target_collection)
+        self._ensure_payload_index("version", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("created_at", qm.PayloadSchemaType.INTEGER, target_collection)
+        self._ensure_payload_index("embedding_model", qm.PayloadSchemaType.KEYWORD, target_collection)
+        self._ensure_payload_index("confidence_score", qm.PayloadSchemaType.FLOAT, target_collection)
 
-    def _ensure_payload_index(self, field: str, schema: qm.PayloadSchemaType) -> None:
+        # Additional indexes for user_context collection
+        if target_collection == "user_context":
+            self._ensure_payload_index("user_id", qm.PayloadSchemaType.KEYWORD, target_collection)
+            self._ensure_payload_index("snapshot_type", qm.PayloadSchemaType.KEYWORD, target_collection)
+            self._ensure_payload_index("timeframe", qm.PayloadSchemaType.KEYWORD, target_collection)
+
+    def _ensure_payload_index(
+        self, field: str, schema: qm.PayloadSchemaType, collection_name: Optional[str] = None
+    ) -> None:
+        target_collection = collection_name or self.collection
         try:
             self.client.create_payload_index(
-                collection_name=self.collection,
+                collection_name=target_collection,
                 field_name=field,
                 field_schema=schema,
             )
@@ -89,18 +137,35 @@ class QdrantStore:
                 return
             logger.debug("create_payload_index skipped field={} reason={}", field, exc)
 
-    def upsert(self, ids: Iterable[str | int], vectors: Iterable[list[float] | Any], payloads: Iterable[Dict[str, Any]]) -> None:
+    def upsert(
+        self,
+        ids: Iterable[str | int],
+        vectors: Iterable[list[float] | Any],
+        payloads: Iterable[Dict[str, Any]],
+        collection_name: Optional[str] = None,
+    ) -> None:
+        """Upsert points to Qdrant collection.
+
+        Args:
+            ids: Point IDs
+            vectors: Vector embeddings
+            payloads: Metadata payloads
+            collection_name: Target collection (defaults to self.collection)
+        """
+        target_collection = collection_name or self.collection
         points = []
-        for id_, vec, pl in zip(ids, vectors, payloads):
+        ids_list = list(ids)  # Convert to list for error reporting
+
+        for id_, vec, pl in zip(ids_list, vectors, payloads):
             points.append(qm.PointStruct(id=id_, vector=vec, payload=pl))
 
         try:
-            self.client.upsert(self.collection, points=points, wait=True)
+            self.client.upsert(target_collection, points=points, wait=True)
         except Exception as exc:
             logger.error(
                 "Qdrant upsert failed for collection={} ids_sample={} error={}",
-                self.collection,
-                ids[:3],
+                target_collection,
+                ids_list[:3],
                 exc,
             )
             raise
@@ -110,9 +175,20 @@ class QdrantStore:
         doc_id: str,
         topics: Sequence[str],
         scores: Sequence[Dict[str, Any]] | None = None,
+        collection_name: Optional[str] = None,
     ) -> None:
+        """Set topics for a document in Qdrant.
+
+        Args:
+            doc_id: Document ID
+            topics: List of topic IDs
+            scores: Optional topic scores
+            collection_name: Target collection (defaults to self.collection)
+        """
         if not topics:
             return
+
+        target_collection = collection_name or self.collection
         payload: Dict[str, Any] = {"topics": list(topics)}
         if scores:
             payload["topic_scores"] = list(scores)
@@ -129,15 +205,16 @@ class QdrantStore:
 
         try:
             self.client.set_payload(
-                collection_name=self.collection,
+                collection_name=target_collection,
                 payload=payload,
                 points=selector,
                 wait=True,
             )
         except Exception as exc:  # pragma: no cover
             logger.error(
-                "Failed to set topics for doc_id={} payload={} error={}",
+                "Failed to set topics for doc_id={} collection={} payload={} error={}",
                 doc_id,
+                target_collection,
                 payload,
                 exc,
             )

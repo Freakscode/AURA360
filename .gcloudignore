@@ -1,0 +1,91 @@
+# Git files
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+docs/
+!README.md
+!services/api/README.md
+!services/shared/README.md
+
+# Mobile app (not needed for backend deploy)
+apps/mobile/
+
+# Web app (not needed for backend deploy)
+apps/web/
+
+# Other services (only include when deploying them)
+services/agents/
+services/vectordb/
+
+# Tests (keep unit tests, exclude integration)
+**/tests/integration/
+**/*_test.py
+**/test_*.py
+
+# Development files
+.env.example
+.env.local
+.env.development
+docker-compose*.yml
+Dockerfile
+!services/api/Dockerfile.gcloud
+
+# Scripts (keep only what's needed)
+scripts/
+!scripts/deploy_*.sh
+!services/api/scripts/start_celery_worker.sh
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Node modules (if any)
+node_modules/
+
+# Misc
+.claude/
+*.sh
+!scripts/deploy_*.sh
+!services/api/scripts/start_celery_worker.sh

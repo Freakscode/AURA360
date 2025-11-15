@@ -11,7 +11,7 @@ class ServiceSettings:
     collection_name: str
     embedding_model: str
     embedding_version: str
-    vector_query_timeout: float
+    vector_query_timeout: int
     vector_query_retry_delay: float
     vector_query_max_retries: int
 
@@ -29,7 +29,13 @@ class ServiceSettings:
 
 class Settings(BaseSettings):
     """Configuración central de vectosvc."""
-    model_config = SettingsConfigDict(env_prefix="", case_sensitive=False)
+    model_config = SettingsConfigDict(
+        env_prefix="",
+        case_sensitive=False,
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
     qdrant_url: str = Field(default="http://localhost:6333", alias="QDRANT_URL")
     qdrant_api_key: str | None = Field(default=None, alias="QDRANT_API_KEY")
@@ -47,7 +53,7 @@ class Settings(BaseSettings):
     embedding_dim: int = Field(default=384, alias="EMBEDDING_DIM")
     embedding_version: str = Field(default="2025.10.27", alias="EMBEDDING_VERSION")
 
-    vector_query_timeout: float = Field(default=8.0, alias="VECTOR_QUERY_TIMEOUT")
+    vector_query_timeout: int = Field(default=8, alias="VECTOR_QUERY_TIMEOUT")
     vector_query_retry_delay: float = Field(default=0.5, alias="VECTOR_QUERY_RETRY_DELAY")
     vector_query_max_retries: int = Field(default=2, alias="VECTOR_QUERY_MAX_RETRIES")
 

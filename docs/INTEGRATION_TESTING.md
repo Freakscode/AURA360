@@ -622,6 +622,14 @@ curl http://localhost:8001/dlq/stats | jq
 
 ---
 
+## ✅ Automatización del Smoke Test de Contexto
+
+- Ejecuta `./scripts/run_user_context_e2e.sh` para levantar el stack reducido (`services/vectordb/docker-compose.e2e.yml`) y correr `test_user_context_e2e.py` end-to-end.
+- El workflow `user-context-e2e` en GitHub Actions replica el mismo flujo y se activa automáticamente en push/PR.
+- Puedes leer los logs con `docker compose -f services/vectordb/docker-compose.e2e.yml logs -f` mientras depuras el pipeline.
+
+---
+
 ## 🔗 Referencias
 
 - [Documentación del Servicio Vectorial](../vectorial_db/documentation/QUICKSTART.md)
@@ -646,4 +654,3 @@ Al agregar nuevas pruebas:
 
 **Última actualización**: Octubre 2025  
 **Versión del documento**: 1.0.0
-

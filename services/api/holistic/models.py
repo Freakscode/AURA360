@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 
 from django.db import models
 
@@ -24,6 +25,7 @@ class HolisticCategory(models.TextChoices):
     MIND = "mind", "Mente"
     BODY = "body", "Cuerpo"
     SOUL = "soul", "Alma"
+    HOLISTIC = "holistic", "Integral"
 
 
 class HolisticRequestStatus(models.TextChoices):
@@ -236,3 +238,338 @@ class HolisticAgentProfile(TimestampedModel):
 
     def __str__(self) -> str:
         return f"{self.category}::{self.version}"
+
+
+class SnapshotType(models.TextChoices):
+    """Tipos de snapshots de contexto de usuario."""
+
+    MIND = "mind", "Mind"
+    BODY = "body", "Body"
+    SOUL = "soul", "Soul"
+    HOLISTIC = "holistic", "Holistic"
+
+
+class TimeframeChoices(models.TextChoices):
+    """Ventanas temporales para agregación de datos."""
+
+    SEVEN_DAYS = "7d", "7 días"
+    THIRTY_DAYS = "30d", "30 días"
+    NINETY_DAYS = "90d", "90 días"
+
+
+class UserContextSnapshot(TimestampedModel):
+    """Snapshot consolidado del contexto del usuario para RAG personalizado.
+
+    Este modelo almacena agregaciones del estado actual del usuario que luego
+    se vectorizan y se usan para búsquedas con mayor peso que el corpus general.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    auth_user_id = models.UUIDField(
+        db_index=True,
+        help_text="ID del usuario en Supabase auth.users",
+    )
+    snapshot_type = models.CharField(
+        max_length=16,
+        choices=SnapshotType.choices,
+        help_text="Tipo de snapshot: mind, body, soul, o holistic",
+    )
+    timeframe = models.CharField(
+        max_length=8,
+        choices=TimeframeChoices.choices,
+        default=TimeframeChoices.SEVEN_DAYS,
+        help_text="Ventana temporal de los datos agregados",
+    )
+    consolidated_text = models.TextField(
+        help_text="Texto consolidado listo para embedding"
+    )
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Metadata adicional específica del snapshot (stats, etc.)",
+    )
+    topics = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Topics biomédicos clasificados para este snapshot",
+    )
+    confidence_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Score de confianza del snapshot (0.00-1.00)",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        help_text="Indica si este snapshot está activo (solo uno por tipo/timeframe)",
+    )
+
+    # Tracking de vectorización
+    vectorized_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp de cuando se vectorizó en Qdrant",
+    )
+    vector_doc_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="ID del documento en Qdrant",
+    )
+
+    # GDPR compliance
+    user_consent_given = models.BooleanField(
+        default=False,
+        help_text="Usuario dio consentimiento para almacenar embeddings",
+    )
+    consent_given_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp del consentimiento",
+    )
+
+    class Meta:
+        db_table = "user_context_snapshots"
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(
+                fields=["auth_user_id", "is_active"],
+                name="user_context_user_active_idx",
+            ),
+            models.Index(
+                fields=["snapshot_type", "timeframe"],
+                name="user_context_type_time_idx",
+            ),
+            models.Index(
+                fields=["vectorized_at"],
+                name="user_context_vectorized_idx",
+            ),
+        ]
+        # Solo un snapshot activo por usuario/tipo/timeframe
+        constraints = [
+            models.UniqueConstraint(
+                fields=["auth_user_id", "snapshot_type", "timeframe"],
+                condition=models.Q(is_active=True),
+                name="unique_active_snapshot_per_user_type_time",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.auth_user_id}::{self.snapshot_type}::{self.timeframe}"
+
+
+class MoodLevel(models.TextChoices):
+    """Niveles de estado de ánimo."""
+
+    VERY_LOW = "very_low", "Muy bajo"
+    LOW = "low", "Bajo"
+    MODERATE = "moderate", "Moderado"
+    GOOD = "good", "Bueno"
+    EXCELLENT = "excellent", "Excelente"
+
+
+class MoodEntry(TimestampedModel):
+    """Registro de estado de ánimo del usuario.
+
+    Sincronizado desde la app mobile. Usado para generar snapshots de contexto mental.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    auth_user_id = models.UUIDField(
+        db_index=True,
+        help_text="ID del usuario en Supabase auth.users",
+    )
+    recorded_at = models.DateTimeField(
+        db_index=True,
+        help_text="Timestamp cuando el usuario registró este mood",
+    )
+    level = models.CharField(
+        max_length=16,
+        choices=MoodLevel.choices,
+        help_text="Nivel de estado de ánimo",
+    )
+    note = models.TextField(
+        blank=True,
+        default="",
+        help_text="Nota opcional del usuario sobre su estado",
+    )
+    tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Tags categorizing the mood (e.g., ['work_stress', 'tired'])",
+    )
+
+    class Meta:
+        db_table = "mood_entries"
+        ordering = ("-recorded_at",)
+        indexes = [
+            models.Index(
+                fields=["auth_user_id", "recorded_at"],
+                name="mood_entry_user_time_idx",
+            ),
+            models.Index(
+                fields=["level"],
+                name="mood_entry_level_idx",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.auth_user_id}::{self.level}@{self.recorded_at}"
+
+
+class UserProfileExtended(TimestampedModel):
+    """Perfil extendido del usuario: IKIGAI + contexto psicosocial.
+
+    Complementa AppUser con datos de soul/spiritual dimension.
+    """
+
+    auth_user_id = models.UUIDField(
+        primary_key=True,
+        help_text="ID del usuario en Supabase auth.users (1-to-1 con AppUser)",
+    )
+
+    # IKIGAI dimensions
+    ikigai_passion = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Lo que amas hacer (lista de strings)",
+    )
+    ikigai_mission = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Lo que el mundo necesita (lista de strings)",
+    )
+    ikigai_vocation = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Por lo que te pueden pagar (lista de strings)",
+    )
+    ikigai_profession = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="En lo que eres bueno (lista de strings)",
+    )
+    ikigai_statement = models.TextField(
+        blank=True,
+        default="",
+        help_text="Declaración personal de propósito de vida",
+    )
+
+    # Psychosocial context
+    psychosocial_context = models.TextField(
+        blank=True,
+        default="",
+        help_text="Contexto psicosocial del usuario",
+    )
+    support_network = models.TextField(
+        blank=True,
+        default="",
+        help_text="Red de apoyo del usuario",
+    )
+    current_stressors = models.TextField(
+        blank=True,
+        default="",
+        help_text="Estresores actuales del usuario",
+    )
+
+    class Meta:
+        db_table = "user_profiles_extended"
+        ordering = ("-updated_at",)
+
+    def __str__(self) -> str:
+        return f"{self.auth_user_id}::extended_profile"
+
+
+class IntakeSubmissionStatus(models.TextChoices):
+    """Estados del flujo de intake holístico."""
+
+    PENDING = "pending", "Pendiente"
+    PROCESSING = "processing", "En proceso"
+    READY = "ready", "Lista"
+    FAILED = "failed", "Fallida"
+
+
+class IntakeSubmission(TimestampedModel):
+    """Registro de una entrevista/ formulario inicial enviado por un usuario."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    auth_user_id = models.UUIDField(
+        db_index=True,
+        help_text="ID del usuario en Supabase auth.users",
+    )
+    trace_id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="Identificador de trazabilidad para correlacionar etapas del pipeline.",
+    )
+    answers = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Mapa question_id -> valor normalizado del cuestionario (12 reactivos).",
+    )
+    free_text = models.CharField(
+        max_length=280,
+        blank=True,
+        default="",
+        help_text="Campo libre final provisto por el participante (máx. 280 caracteres).",
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=IntakeSubmissionStatus.choices,
+        default=IntakeSubmissionStatus.PENDING,
+        help_text="Estado actual del procesamiento del intake.",
+    )
+    processing_stage = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text="Última etapa completada (ej. collected, contextualized, report_ready).",
+    )
+    vectorize_snapshot = models.BooleanField(
+        default=True,
+        help_text="Si es True, el snapshot holístico generado se vectoriza en Qdrant.",
+    )
+    estimated_wait_seconds = models.PositiveSmallIntegerField(
+        default=60,
+        help_text="Tiempo estimado de espera mostrado al usuario.",
+    )
+    report_url = models.URLField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="URL firmada del PDF personalizado, si ya está disponible.",
+    )
+    report_storage_path = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Ruta interna en el storage donde vive el PDF final.",
+    )
+    report_metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Metadata adicional del reporte (checksum, número de páginas, etc.).",
+    )
+    failure_reason = models.TextField(
+        blank=True,
+        default="",
+        help_text="Descripción breve del fallo cuando status=failed.",
+    )
+    last_error_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp del último error registrado para este intake.",
+    )
+
+    class Meta:
+        db_table = "intake_submissions"
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["auth_user_id", "status"], name="intake_user_status_idx"),
+            models.Index(fields=["trace_id"], name="intake_trace_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.auth_user_id}::intake::{self.id}"

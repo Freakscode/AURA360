@@ -17,6 +17,11 @@ dependencies = [
     "pyjwt[crypto]>=2.9",
     "requests>=2.32.3",
     "responses>=0.25.3",
+    "celery>=5.5.3",
+    "redis>=7.0.1",
+    "gunicorn>=23.0.0",
+    "aura360-messaging @ file:///Users/freakscode/Proyectos%202025/AURA360/services/shared",
+    "qdrant-client>=1.11.1",
 ]
 
 [project.optional-dependencies]
@@ -25,3 +30,10 @@ dev = [
     "pytest-django>=4.9.0",
     "pytest-cov>=6.0.0",
 ]
+
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["config*", "users*", "holistic*", "body*"]

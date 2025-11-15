@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Iterable, Optional
 
 from infra import EmbeddingError, ServiceSettings, get_settings
@@ -17,6 +17,18 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
+class VectorSearchFilters:
+    """Filtros para búsqueda vectorial especializada."""
+
+    category: Optional[str] = None  # "mente", "cuerpo", "alma"
+    topics: list[str] = field(default_factory=list)  # Lista de topics biomédicos
+    min_year: Optional[int] = None  # Año mínimo de publicación
+    locale: Optional[str] = None  # e.g., "es-CO"
+    boost_abstracts: bool = True  # Dar mayor peso a abstracts/conclusions
+    boost_recent: bool = True  # Dar mayor peso a papers recientes
+
+
+@dataclass(slots=True)
 class VectorQueryRecord:
     """Representa una consulta realizada contra el almacén vectorial."""
 
@@ -26,6 +38,7 @@ class VectorQueryRecord:
     top_k: int
     response_payload: dict[str, Any]
     confidence_score: float
+    filters_applied: Optional[VectorSearchFilters] = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -35,6 +48,18 @@ class VectorQueryRecord:
             "top_k": self.top_k,
             "response_payload": self.response_payload,
             "confidence_score": self.confidence_score,
+            "filters_applied": (
+                {
+                    "category": self.filters_applied.category,
+                    "topics": self.filters_applied.topics,
+                    "min_year": self.filters_applied.min_year,
+                    "locale": self.filters_applied.locale,
+                    "boost_abstracts": self.filters_applied.boost_abstracts,
+                    "boost_recent": self.filters_applied.boost_recent,
+                }
+                if self.filters_applied
+                else None
+            ),
         }
 
 
@@ -61,6 +86,7 @@ class VectorQueryRunner:
         trace_id: str,
         query_text: str,
         top_k: Optional[int] = None,
+        filters: Optional[VectorSearchFilters] = None,
     ) -> list[VectorQueryRecord]:
         clean_query = query_text.strip()
         if not clean_query:
@@ -75,6 +101,9 @@ class VectorQueryRunner:
         backend = self._settings.embedding_backend
         normalize = self._settings.embedding_normalize
         api_key = self._settings.resolved_embedding_api_key
+
+        # Construir filtros Qdrant
+        query_filter = self._build_qdrant_filter(filters) if filters else None
 
         last_exception: Exception | None = None
 
@@ -96,16 +125,24 @@ class VectorQueryRunner:
                 )
 
                 search_start = time.perf_counter()
-                points = self._qdrant.search(query_embedding=embedding, top_k=limit)
+                points = self._qdrant.search(
+                    query_embedding=embedding, top_k=limit, filters=query_filter
+                )
                 search_elapsed = (time.perf_counter() - search_start) * 1000.0
                 logger.info(
                     "VectorQueryRunner: búsqueda completada en %.2f ms (hits=%d)",
                     search_elapsed,
                     len(points),
-                    extra={"trace_id": trace_id},
+                    extra={"trace_id": trace_id, "filters": filters is not None},
                 )
 
+                # Aplicar boosting si está habilitado
                 hits_payload = [self._serialize_point(point) for point in points]
+                if filters and (filters.boost_abstracts or filters.boost_recent):
+                    hits_payload = self._apply_boosting(hits_payload, filters)
+                    # Re-ordenar por score ajustado
+                    hits_payload.sort(key=lambda x: x.get("score", 0.0), reverse=True)
+
                 confidence = (
                     sum(hit.get("score") or 0.0 for hit in hits_payload) / len(hits_payload)
                     if hits_payload
@@ -119,6 +156,7 @@ class VectorQueryRunner:
                     top_k=limit,
                     response_payload={"hits": hits_payload},
                     confidence_score=round(confidence, 4),
+                    filters_applied=filters,
                 )
                 return [record]
             except EmbeddingError as exc:
@@ -147,6 +185,79 @@ class VectorQueryRunner:
             details={"reason": str(last_exception)},
         ) from last_exception
 
+    def _build_qdrant_filter(self, filters: VectorSearchFilters) -> qmodels.Filter:
+        """Construye filtro Qdrant basado en VectorSearchFilters."""
+        must_conditions = []
+
+        # Filtro por categoría
+        if filters.category:
+            must_conditions.append(
+                qmodels.FieldCondition(
+                    key="category", match=qmodels.MatchValue(value=filters.category)
+                )
+            )
+
+        # Filtro por topics (OR entre topics)
+        if filters.topics:
+            # Usar should para que cualquier topic coincida
+            topic_conditions = [
+                qmodels.FieldCondition(
+                    key="topics", match=qmodels.MatchAny(any=filters.topics)
+                )
+            ]
+            must_conditions.extend(topic_conditions)
+
+        # Filtro por año mínimo
+        if filters.min_year:
+            must_conditions.append(
+                qmodels.FieldCondition(
+                    key="year", range=qmodels.Range(gte=filters.min_year)
+                )
+            )
+
+        # Filtro por locale
+        if filters.locale:
+            must_conditions.append(
+                qmodels.FieldCondition(
+                    key="locale", match=qmodels.MatchValue(value=filters.locale)
+                )
+            )
+
+        return qmodels.Filter(must=must_conditions) if must_conditions else None
+
+    def _apply_boosting(
+        self, hits: list[dict[str, Any]], filters: VectorSearchFilters
+    ) -> list[dict[str, Any]]:
+        """Aplica boosting a los scores basado en metadata."""
+        import datetime
+
+        current_year = datetime.datetime.now().year
+
+        for hit in hits:
+            payload = hit.get("payload", {})
+            original_score = hit.get("score", 0.0)
+            boost = 0.0
+
+            # Boost por abstract/conclusion
+            if filters.boost_abstracts:
+                if payload.get("is_abstract") or payload.get("is_conclusion"):
+                    boost += 0.2
+
+            # Boost por año reciente
+            if filters.boost_recent:
+                year = payload.get("year", 0)
+                if year >= 2020:
+                    boost += 0.15
+                elif year >= 2015:
+                    boost += 0.1
+
+            # Aplicar boost
+            hit["score"] = min(1.0, original_score + boost)
+            hit["original_score"] = original_score
+            hit["boost_applied"] = boost
+
+        return hits
+
     @staticmethod
     def _serialize_point(point: qmodels.ScoredPoint) -> dict[str, Any]:
         payload = point.payload or {}
@@ -157,4 +268,4 @@ class VectorQueryRunner:
         }
 
 
-__all__ = ["VectorQueryRecord", "VectorQueryRunner"]
+__all__ = ["VectorQueryRecord", "VectorQueryRunner", "VectorSearchFilters"]

@@ -13,6 +13,8 @@ export interface SupabaseSettings {
 export interface Aura360Environment {
   readonly production: boolean;
   readonly supabase: SupabaseSettings;
+  /** Base URL for the Django API (e.g., https://api.example.com/api). */
+  readonly apiBaseUrl: string;
 }
 
 /**

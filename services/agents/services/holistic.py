@@ -18,6 +18,8 @@ from holistic_agent import (
 from .agent_executor import AgentExecutor, AgentExecutionResult
 from .exceptions import AgentExecutionError, ServiceError, UnsupportedCategoryError, VectorQueryError
 from .vector_queries import VectorQueryRecord, VectorQueryRunner
+from .guardian_retrieval import GuardianKnowledgeRetriever
+from .topic_classifier import get_topic_classifier
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +53,13 @@ class HolisticAdviceService:
         *,
         settings: Optional[ServiceSettings] = None,
         vector_runner: Optional[VectorQueryRunner] = None,
+        guardian_retriever: Optional[GuardianKnowledgeRetriever] = None,
     ) -> None:
         load_environment(override=False)
         self._settings = settings or get_settings()
         self._vector_runner = vector_runner or VectorQueryRunner(settings=self._settings)
+        self._guardian_retriever = guardian_retriever or GuardianKnowledgeRetriever(settings=self._settings)
+        self._topic_classifier = get_topic_classifier()
         self._agents = {
             "mind": AgentDefinition(
                 name="mental_guardian",
@@ -120,14 +125,35 @@ class HolisticAdviceService:
         )
 
         vector_records: list[VectorQueryRecord] = []
+        classified_topics: list[str] = []
+
+        # Extraer user_id del request para weighted retrieval
+        user_id = (
+            request.user_profile.get("id")
+            or request.user_profile.get("auth_user_id")
+            or request.user_profile.get("user_id")
+        )
+
         if prompt:
             logger.info(
-                "HolisticAdviceService: ejecutando búsqueda vectorial",
-                extra={"trace_id": request.trace_id, "category": agent.category},
+                "HolisticAdviceService: ejecutando búsqueda vectorial especializada",
+                extra={"trace_id": request.trace_id, "category": agent.category, "user_id": user_id},
             )
-            vector_records = self._run_vector_query(
+
+            # Clasificar topics del contexto del usuario
+            classified_topics = self._topic_classifier.classify(prompt)
+            logger.info(
+                "HolisticAdviceService: topics clasificados",
+                extra={"trace_id": request.trace_id, "topics": classified_topics},
+            )
+
+            # Usar retrieval especializado por Guardian (con weighted si hay user_id)
+            vector_records = self._run_specialized_vector_query(
                 trace_id=request.trace_id,
+                category=agent.category,
                 query_text=prompt,
+                user_topics=classified_topics,
+                user_id=str(user_id) if user_id else None,
             )
         else:
             logger.info(
@@ -211,6 +237,94 @@ class HolisticAdviceService:
             logger.exception(
                 "HolisticAdviceService: error inesperado al consultar vector store",
                 extra={"trace_id": trace_id},
+            )
+            raise VectorQueryError(message="Error inesperado al consultar la base vectorial.") from exc
+
+    def _run_specialized_vector_query(
+        self,
+        *,
+        trace_id: str,
+        category: str,
+        query_text: str,
+        user_topics: list[str],
+        user_id: Optional[str] = None,
+    ) -> list[VectorQueryRecord]:
+        """
+        Ejecuta búsqueda vectorial especializada por tipo de Guardian.
+
+        Si user_id está disponible, utiliza weighted retrieval que combina
+        contexto personalizado del usuario (×1.5) con corpus general (×1.0).
+
+        Args:
+            trace_id: ID de trazabilidad
+            category: Categoría del agente (mind, body, soul, holistic)
+            query_text: Texto de consulta
+            user_topics: Topics clasificados del contexto del usuario
+            user_id: UUID del usuario para weighted retrieval (opcional)
+
+        Returns:
+            Lista de records con resultados especializados
+        """
+        try:
+            # Para categoría holistic, usar búsqueda general sin filtros
+            if category == "holistic":
+                logger.info(
+                    "HolisticAdviceService: usando búsqueda general para holistic",
+                    extra={"trace_id": trace_id},
+                )
+                return self._run_vector_query(trace_id=trace_id, query_text=query_text)
+
+            # Para categorías específicas, usar retrieval especializado
+            guardian_type_mapping = {
+                "mind": "mental",
+                "body": "physical",
+                "soul": "spiritual",
+            }
+            guardian_type = guardian_type_mapping.get(category)
+
+            if not guardian_type:
+                logger.warning(
+                    "HolisticAdviceService: categoría desconocida para retrieval especializado",
+                    extra={"trace_id": trace_id, "category": category},
+                )
+                return self._run_vector_query(trace_id=trace_id, query_text=query_text)
+
+            # Si hay user_id, usar weighted retrieval para personalización
+            if user_id:
+                logger.info(
+                    f"HolisticAdviceService: usando weighted retrieval para user={user_id}",
+                    extra={"trace_id": trace_id, "category": category, "user_id": user_id},
+                )
+                return self._guardian_retriever.retrieve_weighted(
+                    trace_id=trace_id,
+                    context=query_text,
+                    user_id=user_id,
+                    guardian_type=guardian_type,
+                    user_topics=user_topics,
+                    top_k=self._settings.vector_top_k,
+                )
+
+            # Fallback a retrieval tradicional sin weighted
+            logger.info(
+                f"HolisticAdviceService: usando retrieval tradicional (sin user_id)",
+                extra={"trace_id": trace_id, "category": category},
+            )
+            retrieve_method = getattr(self._guardian_retriever, f"retrieve_for_{guardian_type}")
+            return retrieve_method(
+                trace_id=trace_id,
+                context=query_text,
+                user_topics=user_topics,
+                top_k=self._settings.vector_top_k,
+            )
+
+        except VectorQueryError:
+            raise
+        except ServiceError:
+            raise
+        except Exception as exc:  # pragma: no cover - defensivo
+            logger.exception(
+                "HolisticAdviceService: error inesperado al consultar vector store especializado",
+                extra={"trace_id": trace_id, "category": category},
             )
             raise VectorQueryError(message="Error inesperado al consultar la base vectorial.") from exc
 

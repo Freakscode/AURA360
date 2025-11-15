@@ -151,10 +151,55 @@ class ServiceSettings(BaseSettings):
         return self.embedding_api_key or os.getenv("GOOGLE_API_KEY")
 
 
+# Dominios de conocimiento especializados por Guardian
+GUARDIAN_KNOWLEDGE_DOMAINS = {
+    "mental": [
+        "mental_health",
+        "cognitive_function",
+        "neurodegeneration",
+        "stress_response",
+        "neuroendocrine",
+        "metabolic_brain",
+        "chronic_pain",
+    ],
+    "physical": [
+        "nutrition",
+        "exercise_physiology",
+        "sleep_health",
+        "circadian_rhythm",
+        "sleep_deprivation",
+        "insomnia",
+        "hypersomnia",
+        "obstructive_sleep_apnea",
+        "sleep_medicine",
+        "gut_microbiome",
+        "metabolism_disorders",
+        "obesity",
+        "type2_diabetes",
+        "insulin_signaling",
+        "cardiovascular_health",
+        "chrononutrition",
+        "liver_health",
+        "immunometabolism",
+        "endocrine_disorders",
+        "inflammation",
+        "oxidative_stress",
+    ],
+    "spiritual": [
+        "aging_longevity",
+        "mental_health",  # Overlap with mental for holistic approach
+        "stress_response",  # Overlap with mental for holistic approach
+        "reproductive_health",
+        "pcos",
+        "adolescent_health",
+    ],
+}
+
+
 @lru_cache(maxsize=1)
 def get_settings() -> ServiceSettings:
     """Retorna la configuración cacheada del servicio."""
     return ServiceSettings()
 
 
-__all__ = ["ServiceSettings", "get_settings"]
+__all__ = ["ServiceSettings", "get_settings", "GUARDIAN_KNOWLEDGE_DOMAINS"]

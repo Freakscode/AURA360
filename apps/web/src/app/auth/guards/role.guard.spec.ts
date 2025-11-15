@@ -6,9 +6,6 @@ import { roleGuard } from './role.guard';
 import { SupabaseClientService } from '../services/supabase-client.service';
 
 describe('roleGuard', () => {
-  const route = {} as ActivatedRouteSnapshot;
-  const state = {} as RouterStateSnapshot;
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -22,7 +19,8 @@ describe('roleGuard', () => {
   });
 
   it('should block navigation until role checks are implemented', () => {
-    const canActivate = TestBed.runInInjectionContext(() => roleGuard(route, state));
+    const guard = roleGuard([]);
+    const canActivate = TestBed.runInInjectionContext(() => guard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
     expect(canActivate).toBeFalse();
   });
 });

@@ -6,7 +6,10 @@ y exponer una API REST completa usando Django REST Framework.
 """
 
 from pathlib import Path
+
+from celery.schedules import crontab
 from decouple import config, Csv
+from kombu import Queue
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,7 +88,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # DATABASE CONFIGURATION
 # ==============================================================================
 # Configurado para conectar con PostgreSQL (Supabase)
-# El puerto 54322 es el default de Supabase local
+#
+# Puertos:
+# - 54322: Supabase local (desarrollo)
+# - 6543: Supabase Cloud Pooler (producción - RECOMENDADO)
+# - 5432: Supabase Cloud directo (no recomendado, sin pooling)
 
 DATABASES = {
     'default': {
@@ -95,7 +102,9 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD', default='postgres'),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='54322'),
-        'CONN_MAX_AGE': 0,  # Desactiva el pool de conexiones para evitar problemas con pytest
+        # Connection pooling: 0 para dev/testing, 600 para producción
+        # Railway/producción: configurar CONN_MAX_AGE=600 en env vars
+        'CONN_MAX_AGE': int(config('CONN_MAX_AGE', default=0)),
         'OPTIONS': {
             # Opciones para PostgreSQL
             'options': '-c search_path=public,auth',
@@ -139,6 +148,13 @@ NUTRITION_PLAN_STORAGE_TIMEOUT = config('NUTRITION_PLAN_STORAGE_TIMEOUT', defaul
 
 NUTRITION_PLAN_MAX_UPLOAD_MB = config('NUTRITION_PLAN_MAX_UPLOAD_MB', default=10, cast=int)
 NUTRITION_PLAN_ALLOWED_FILE_TYPES = config('NUTRITION_PLAN_ALLOWED_FILE_TYPES', default='application/pdf', cast=Csv())
+
+# ==============================================================================
+# HOLISTIC REPORT SERVICE
+# ==============================================================================
+HOLISTIC_REPORT_SERVICE_URL = config('HOLISTIC_REPORT_SERVICE_URL', default=None)
+HOLISTIC_REPORT_SERVICE_TOKEN = config('HOLISTIC_REPORT_SERVICE_TOKEN', default=None)
+HOLISTIC_REPORT_SERVICE_TIMEOUT = config('HOLISTIC_REPORT_SERVICE_TIMEOUT', default=45, cast=int)
 
 # ==============================================================================
 # SUPABASE ADMIN API CONFIGURATION
@@ -305,3 +321,44 @@ HOLISTIC_AGENT_SERVICE_URL = config(
 HOLISTIC_AGENT_SERVICE_TOKEN = config('HOLISTIC_AGENT_SERVICE_TOKEN', default=None)
 HOLISTIC_AGENT_REQUEST_TIMEOUT = config('HOLISTIC_AGENT_REQUEST_TIMEOUT', default=120, cast=int)
 HOLISTIC_AGENT_RETRY_DELAY = config('HOLISTIC_AGENT_RETRY_DELAY', default=2, cast=int)
+
+
+# ==============================================================================
+# CELERY CONFIGURATION
+# ==============================================================================
+
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default=CELERY_BROKER_URL)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ENABLE_UTC = True
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_TIME_LIMIT = config('CELERY_TASK_TIME_LIMIT', default=600, cast=int)
+CELERY_TASK_SOFT_TIME_LIMIT = config('CELERY_TASK_SOFT_TIME_LIMIT', default=540, cast=int)
+CELERY_TASK_DEFAULT_QUEUE = config('CELERY_TASK_DEFAULT_QUEUE', default='api_default')
+CELERY_TASK_QUEUES = (
+    Queue('api_default', routing_key='api_default'),
+    Queue('holistic_snapshots', routing_key='holistic.snapshots'),
+)
+
+CELERY_TASK_ROUTES = {
+    'holistic.generate_user_context_snapshots_periodic': {'queue': 'holistic_snapshots'},
+    'holistic.generate_user_context_snapshot_for_user': {'queue': 'holistic_snapshots'},
+    'holistic.vectorize_pending_snapshots': {'queue': 'holistic_snapshots'},
+}
+
+CELERY_BEAT_SCHEDULE = {
+    'holistic-generate-user-context-snapshots-daily': {
+        'task': 'holistic.generate_user_context_snapshots_periodic',
+        'schedule': crontab(hour=3, minute=0),  # Ejecuta diario 03:00 UTC
+        'options': {
+            'queue': 'holistic_snapshots',
+        },
+    },
+}
+
+CELERY_IMPORTS = (
+    'holistic.tasks',
+)

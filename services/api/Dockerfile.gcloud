@@ -1,0 +1,61 @@
+# Multi-stage Dockerfile for Django API (AURA360)
+# Optimized for Google Cloud Run deployment with shared dependencies
+# This Dockerfile must be built from the repository root, not from services/api
+
+FROM python:3.13-slim AS base
+
+# Prevent Python from writing pyc files and buffering stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies required for PostgreSQL and cryptography
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install uv for faster dependency management
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Copy shared messaging package first
+COPY services/shared /app/services/shared
+
+# Install shared package
+RUN cd /app/services/shared && uv pip install --system --no-cache .
+
+# Copy API dependency files
+COPY services/api/pyproject.toml /app/
+
+# Temporarily remove the local file dependency from pyproject.toml
+RUN sed -i '/aura360-messaging @ file/d' /app/pyproject.toml
+
+# Install API dependencies using uv
+RUN uv pip install --system --no-cache .
+
+# Copy API application code
+COPY services/api /app/
+
+# Collect static files for production
+RUN python manage.py collectstatic --noinput --clear
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:8000/api/v1/health', timeout=5).raise_for_status()" || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Run migrations and start gunicorn with multiple workers
+# Cloud Run will set PORT env var, but we default to 8000
+CMD python manage.py migrate --noinput && \
+    gunicorn config.wsgi:application \
+    --bind 0.0.0.0:${PORT:-8000} \
+    --workers ${WEB_CONCURRENCY:-2} \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info

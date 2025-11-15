@@ -155,3 +155,11 @@ tmp/
 .pytest_cache
 *.class
 migrate_working_dir/
+
+# Production environment files
+.env.production
+.env.staging
+.env.*.backup
+
+# Production config backups
+**/*.production.backup.*

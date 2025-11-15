@@ -18,4 +18,6 @@ The `adk-python` directory contains the Google Agent Development Kit (ADK) Pytho
 
 ## Recommended Approach
 
-For production, use the published package from PyPI rather than vendoring the entire SDK in the repository. Only keep local copies for development/testing if making modifications to the SDK itself.
+- The agents service (`services/agents/pyproject.toml`) ya depende de `google-adk` desde PyPI, por lo que basta con ejecutar `uv sync` para obtener la versión oficial.
+- Para producción, usa siempre el paquete publicado en lugar de versionar el SDK completo. Mantén `adk-python/` únicamente cuando necesites parches temporales y documenta el motivo en tu PR.
+- Si migras completamente al paquete remoto, puedes eliminar la carpeta `adk-python/` y añadirla al `.gitignore` para evitar futuros commits accidentales.

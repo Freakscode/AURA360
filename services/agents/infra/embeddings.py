@@ -7,7 +7,10 @@ import os
 from math import sqrt
 from typing import Any, Sequence
 
-from google import genai
+try:
+    from google import genai
+except ImportError:  # pragma: no cover - dependencia opcional
+    genai = None  # type: ignore[assignment]
 
 try:
     from fastembed import TextEmbedding

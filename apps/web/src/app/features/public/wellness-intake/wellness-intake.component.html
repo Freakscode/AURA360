@@ -1,0 +1,387 @@
+<section class="intake">
+  <header class="intake__header">
+    <p class="intake__eyebrow">Entrevista personalizada</p>
+    <h1>Formulario de bienestar holístico</h1>
+    <p>
+      Responde 12 preguntas clave para comprender tu contexto físico, mental y espiritual. Con
+      estas respuestas generaremos un reporte PDF de máximo dos páginas con recomendaciones
+      accionables.
+    </p>
+  </header>
+
+  <ol class="intake__steps">
+    <li
+      *ngFor="let step of steps; let idx = index"
+      class="intake__step"
+      [class.intake__step--active]="idx === currentStepIndex"
+      [class.intake__step--completed]="idx < currentStepIndex"
+      (click)="idx < currentStepIndex ? goToStep(idx) : null"
+    >
+      <span class="intake__step-index">{{ idx + 1 }}</span>
+      <span class="intake__step-label">{{ stepLabel(step) }}</span>
+    </li>
+  </ol>
+
+  <form class="intake__form" [formGroup]="form" novalidate>
+    <ng-container [ngSwitch]="currentStepKey">
+      <!-- Sección física -->
+      <section *ngSwitchCase="'physical'" class="intake__card" formGroupName="physical">
+        <header>
+          <h2>{{ sections[0].title }}</h2>
+          <p>{{ sections[0].description }}</p>
+        </header>
+
+        <article class="question" [class.question--invalid]="groupInvalid('physical', 'F1')">
+          <p class="question__title">{{ sections[0].questions[0].title }}</p>
+          <div class="option-list">
+            <label *ngFor="let option of questionOptions('physical', 'F1')" class="option">
+              <input
+                type="radio"
+                formControlName="F1"
+                [value]="option.value"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+          <p class="question__error" *ngIf="groupInvalid('physical', 'F1')">
+            Selecciona la opción que mejor describe tu energía.
+          </p>
+        </article>
+
+        <article class="question" [class.question--invalid]="groupInvalid('physical', 'F2')">
+          <p class="question__title">{{ sections[0].questions[1].title }}</p>
+          <div class="option-list">
+            <label *ngFor="let option of questionOptions('physical', 'F2')" class="option">
+              <input
+                type="radio"
+                formControlName="F2"
+                [value]="option.value"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+        </article>
+
+        <article class="question" formGroupName="F3" [class.question--invalid]="groupInvalid('physical', 'F3.frequency')">
+          <p class="question__title">{{ sections[0].questions[2].title }}</p>
+          <p class="question__hint" *ngIf="questionDescription('physical', 'F3') as desc">{{ desc }}</p>
+          <div class="option-list">
+            <label *ngFor="let option of ['almost_never','one_two','three_four','five_plus']; let idx = index" class="option">
+              <input
+                type="radio"
+                formControlName="frequency"
+                [value]="option"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>
+                {{ ['Casi nunca','1-2 noches','3-4 noches','5+ noches'][idx] }}
+              </span>
+            </label>
+          </div>
+          <label class="switch-field">
+            <input type="checkbox" formControlName="consulted_professional" [disabled]="shouldDisableActions()" />
+            He consultado a un profesional del sueño sobre este tema.
+          </label>
+        </article>
+
+        <article class="question" formGroupName="F4" [class.question--invalid]="groupInvalid('physical', 'F4.selected')">
+          <p class="question__title">{{ sections[0].questions[3].title }}</p>
+          <p class="question__hint" *ngIf="questionDescription('physical', 'F4') as desc">{{ desc }}</p>
+          <div class="option-grid">
+            <label *ngFor="let option of questionOptions('physical', 'F4')" class="checkbox-option">
+              <input
+                type="checkbox"
+                [checked]="multiSelected('physical', 'F4').includes(option.value)"
+                (change)="toggleMultiSelection('physical', 'F4', option.value, option.exclusive)"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+          <div class="other-field" *ngIf="hasSelectedOther('physical', 'F4')">
+            <label for="f4-other">Describe otro hábito</label>
+            <input id="f4-other" type="text" formControlName="otherText" maxlength="120" />
+          </div>
+        </article>
+      </section>
+
+      <!-- Sección mental -->
+      <section *ngSwitchCase="'mental'" class="intake__card" formGroupName="mental">
+        <header>
+          <h2>{{ sections[1].title }}</h2>
+          <p>{{ sections[1].description }}</p>
+        </header>
+
+        <article class="question" [class.question--invalid]="groupInvalid('mental', 'M1')">
+          <p class="question__title">{{ sections[1].questions[0].title }}</p>
+          <div class="option-list">
+            <label *ngFor="let option of questionOptions('mental', 'M1')" class="option">
+              <input
+                type="radio"
+                formControlName="M1"
+                [value]="option.value"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+        </article>
+
+        <article class="question" formGroupName="M2" [class.question--invalid]="groupInvalid('mental', 'M2.selected')">
+          <p class="question__title">{{ sections[1].questions[1].title }}</p>
+          <p class="question__hint" *ngIf="questionDescription('mental', 'M2') as desc">{{ desc }}</p>
+          <div class="option-grid">
+            <label *ngFor="let option of questionOptions('mental', 'M2')" class="checkbox-option">
+              <input
+                type="checkbox"
+                [checked]="multiSelected('mental', 'M2').includes(option.value)"
+                (change)="toggleMultiSelection('mental', 'M2', option.value, option.exclusive)"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+          <div class="other-field" *ngIf="hasSelectedOther('mental', 'M2')">
+            <label for="m2-other">Especifica otro factor</label>
+            <input id="m2-other" type="text" formControlName="otherText" maxlength="120" />
+          </div>
+          <p class="question__error" *ngIf="groupInvalid('mental', 'M2.selected')">
+            Selecciona al menos un estresor.
+          </p>
+        </article>
+
+        <article class="question" [class.question--invalid]="groupInvalid('mental', 'M3')">
+          <p class="question__title">{{ sections[1].questions[2].title }}</p>
+          <div class="option-list">
+            <label *ngFor="let option of questionOptions('mental', 'M3')" class="option">
+              <input
+                type="radio"
+                formControlName="M3"
+                [value]="option.value"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+        </article>
+
+        <article class="question" formGroupName="M4" [class.question--invalid]="groupInvalid('mental', 'M4.has_strategies')">
+          <p class="question__title">{{ sections[1].questions[3].title }}</p>
+          <p class="question__hint" *ngIf="questionDescription('mental', 'M4') as desc">{{ desc }}</p>
+          <div class="option-list option-list--inline">
+            <label class="option">
+              <input type="radio" formControlName="has_strategies" [value]="true" [disabled]="shouldDisableActions()" />
+              <span>Sí</span>
+            </label>
+            <label class="option">
+              <input type="radio" formControlName="has_strategies" [value]="false" [disabled]="shouldDisableActions()" />
+              <span>No</span>
+            </label>
+          </div>
+         <div class="option-grid" formGroupName="strategies" *ngIf="form.get('mental.M4.has_strategies')?.value === true">
+            <label *ngFor="let option of ['breathing','journaling','therapy','mindfulness','movement','other']" class="checkbox-option">
+              <input
+                type="checkbox"
+                [checked]="(form.get('mental.M4.strategies.selected')?.value ?? []).includes(option)"
+                (change)="toggleStrategy(option)"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>
+                {{
+                  {
+                    breathing: 'Respiración / mindfulness',
+                    journaling: 'Journaling / gratitud',
+                    therapy: 'Terapia / acompañamiento',
+                    mindfulness: 'Meditación guiada',
+                    movement: 'Movimiento consciente',
+                    other: 'Otra estrategia'
+                  }[option]
+                }}
+              </span>
+            </label>
+           <div class="other-field" *ngIf="(form.get('mental.M4.strategies.selected')?.value ?? []).includes('other')">
+              <label for="m4-other">Describe tu estrategia</label>
+              <input id="m4-other" type="text" formControlName="otherText" maxlength="120" />
+            </div>
+          </div>
+          <p class="question__error" *ngIf="form.get('mental.M4.strategies.selected')?.hasError('required')">
+            Selecciona al menos una estrategia.
+          </p>
+        </article>
+      </section>
+
+      <!-- Sección espiritual -->
+      <section *ngSwitchCase="'spiritual'" class="intake__card" formGroupName="spiritual">
+        <header>
+          <h2>{{ sections[2].title }}</h2>
+          <p>{{ sections[2].description }}</p>
+        </header>
+
+        <article class="question" [class.question--invalid]="groupInvalid('spiritual', 'S1')">
+          <p class="question__title">{{ sections[2].questions[0].title }}</p>
+          <div class="option-list">
+            <label *ngFor="let option of questionOptions('spiritual', 'S1')" class="option">
+              <input
+                type="radio"
+                formControlName="S1"
+                [value]="option.value"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+        </article>
+
+        <article class="question" formGroupName="S2" [class.question--invalid]="groupInvalid('spiritual', 'S2.selected')">
+          <p class="question__title">{{ sections[2].questions[1].title }}</p>
+          <div class="option-grid">
+            <label *ngFor="let option of questionOptions('spiritual', 'S2')" class="checkbox-option">
+              <input
+                type="checkbox"
+                [checked]="multiSelected('spiritual', 'S2').includes(option.value)"
+                (change)="toggleMultiSelection('spiritual', 'S2', option.value, option.exclusive)"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+          <p class="question__error" *ngIf="groupInvalid('spiritual', 'S2.selected')">
+            Selecciona al menos una práctica (o indica que no cuentas con ninguna).
+          </p>
+        </article>
+
+        <article class="question" [class.question--invalid]="groupInvalid('spiritual', 'S3')">
+          <p class="question__title">{{ sections[2].questions[2].title }}</p>
+          <div class="option-list">
+            <label *ngFor="let option of questionOptions('spiritual', 'S3')" class="option">
+              <input
+                type="radio"
+                formControlName="S3"
+                [value]="option.value"
+                [disabled]="shouldDisableActions()"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+        </article>
+
+        <article class="question" formGroupName="S4" [class.question--invalid]="groupInvalid('spiritual', 'S4.has_guide')">
+          <p class="question__title">{{ sections[2].questions[3].title }}</p>
+          <div class="option-list option-list--inline">
+            <label class="option">
+              <input type="radio" formControlName="has_guide" [value]="true" [disabled]="shouldDisableActions()" />
+              <span>Sí</span>
+            </label>
+            <label class="option">
+              <input type="radio" formControlName="has_guide" [value]="false" [disabled]="shouldDisableActions()" />
+              <span>No</span>
+            </label>
+          </div>
+          <div class="select-field" *ngIf="form.get('spiritual.S4.has_guide')?.value === true">
+            <label for="guide-type">Tipo de guía</label>
+            <select id="guide-type" formControlName="guide_type" [disabled]="shouldDisableActions()">
+              <option value="">Selecciona una opción</option>
+              <option value="mentor">Mentoría individual</option>
+              <option value="community">Comunidad / grupo</option>
+              <option value="literature">Lecturas guiadas</option>
+              <option value="other">Otro acompañamiento</option>
+            </select>
+            <p class="question__error" *ngIf="form.get('spiritual.S4.guide_type')?.hasError('required')">
+              Selecciona el tipo de guía que utilizas.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <!-- Resumen -->
+      <section *ngSwitchCase="'summary'" class="intake__card intake__card--summary">
+        <header>
+          <h2>Resumen antes de enviar</h2>
+          <p>
+            Verifica que tu información sea correcta. Puedes regresar a cualquier paso desde la parte
+            superior. Añade información adicional si lo crees necesario.
+          </p>
+        </header>
+        <div class="summary__grid">
+          <article *ngFor="let section of sections">
+            <h3>{{ section.title }}</h3>
+            <p>{{ section.description }}</p>
+            <p class="summary__hint">Respuestas guardadas: se actualizarán cuando regreses a cada paso.</p>
+          </article>
+        </div>
+        <div class="free-text">
+          <label for="free-text">¿Quieres agregar detalles adicionales?</label>
+          <textarea
+            id="free-text"
+            rows="4"
+            formControlName="freeText"
+            maxlength="280"
+            placeholder="Ejemplo: Tengo diagnóstico reciente de migrañas y busco apoyo para reorganizar mis horarios."
+          ></textarea>
+          <p class="char-counter">{{ (form.get('freeText')?.value || '').length }} / 280</p>
+        </div>
+      </section>
+    </ng-container>
+
+    <div class="intake__actions">
+      <button
+        type="button"
+        class="btn btn--ghost"
+        (click)="previousStep()"
+        [disabled]="isFirstStep() || shouldDisableActions()"
+      >
+        Atrás
+      </button>
+      <button
+        *ngIf="!isLastStep()"
+        type="button"
+        class="btn btn--primary"
+        (click)="nextStep()"
+        [disabled]="shouldDisableActions()"
+      >
+        Siguiente
+      </button>
+      <button
+        *ngIf="isLastStep()"
+        type="button"
+        class="btn btn--primary"
+        (click)="onSubmit()"
+        [disabled]="shouldDisableActions()"
+      >
+        Enviar respuestas
+      </button>
+    </div>
+  </form>
+
+  <section
+    *ngIf="submission"
+    class="intake__status-card"
+    [class.intake__status-card--ready]="status === 'ready'"
+    [class.intake__status-card--error]="status === 'error'"
+  >
+    <h3>Estado del reporte</h3>
+    <p>{{ statusMessage }}</p>
+    <dl>
+      <div>
+        <dt>Estado</dt>
+        <dd>{{ submission.status | titlecase }}</dd>
+      </div>
+      <div *ngIf="submission.processing_stage">
+        <dt>Etapa</dt>
+        <dd>{{ submission.processing_stage }}</dd>
+      </div>
+      <div *ngIf="submission.report_url">
+        <dt>Reporte</dt>
+        <dd>
+          <a [href]="submission.report_url" target="_blank" rel="noopener">Descargar PDF</a>
+        </dd>
+      </div>
+      <div *ngIf="submission.failure_reason">
+        <dt>Detalle</dt>
+        <dd>{{ submission.failure_reason }}</dd>
+      </div>
+    </dl>
+  </section>
+</section>

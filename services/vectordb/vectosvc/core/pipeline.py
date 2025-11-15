@@ -209,7 +209,9 @@ def ingest_one(req_dict: Dict) -> int:
             emb = Embeddings(model_name=embedding_model)
             vectors = emb.encode([chunk["text"] for chunk in chunk_records])
 
-        store.ensure_collection(vector_size=vectors.shape[1], on_disk=True)
+        # Determinar colección de destino basada en source_type
+        target_collection = store.get_collection_for_source_type(source_type)
+        store.ensure_collection(vector_size=vectors.shape[1], on_disk=True, collection_name=target_collection)
 
         ids: List[str] = []
         payloads: List[Dict] = []
@@ -218,48 +220,57 @@ def ingest_one(req_dict: Dict) -> int:
         for chunk, vec in zip(chunk_records, vectors):
             cid = _make_point_id(parsed.meta.doc_id, chunk["chunk_index"], chunk["hash"])
             ids.append(cid)
-            payloads.append(
-                {
-                    "doc_id": parsed.meta.doc_id,
-                    "chunk_index": chunk["chunk_index"],
-                    "text": chunk["text"],
-                    "section_path": chunk["section_path"],
-                    "section_order": chunk["section_order"],
-                    "is_abstract": chunk["is_abstract"],
-                    "is_conclusion": chunk["is_conclusion"],
-                    "lang": parsed.meta.lang or "unknown",
-                    "locale": locale,
-                    "category": category,
-                    "source_type": source_type,
-                    "title": parsed.meta.title,
-                    "authors": parsed.meta.authors,
-                    "doi": parsed.meta.doi,
-                    "journal": parsed.meta.journal,
-                    "year": parsed.meta.year,
-                    "topics": parsed.meta.topics,
-                    "mesh_terms": parsed.meta.mesh_terms,
-                    "source": parsed.meta.source,
-                    "tags": tags,
-                    "created_at": now,
-                    "valid_from": valid_from,
-                    "embedding_model": embedding_model,
-                    "version": version,
-                    "doc_version": doc_version,
-                    "hash": chunk["hash"],
-                    "confidence_score": 1.0,  # TODO: Calcular confianza real basada en evaluación de calidad del chunk.
-                }
-            )
+
+            # Base payload común para todos los documentos
+            payload = {
+                "doc_id": parsed.meta.doc_id,
+                "chunk_index": chunk["chunk_index"],
+                "text": chunk["text"],
+                "section_path": chunk["section_path"],
+                "section_order": chunk["section_order"],
+                "is_abstract": chunk["is_abstract"],
+                "is_conclusion": chunk["is_conclusion"],
+                "lang": parsed.meta.lang or "unknown",
+                "locale": locale,
+                "category": category,
+                "source_type": source_type,
+                "title": parsed.meta.title,
+                "authors": parsed.meta.authors,
+                "doi": parsed.meta.doi,
+                "journal": parsed.meta.journal,
+                "year": parsed.meta.year,
+                "topics": parsed.meta.topics,
+                "mesh_terms": parsed.meta.mesh_terms,
+                "source": parsed.meta.source,
+                "tags": tags,
+                "created_at": now,
+                "valid_from": valid_from,
+                "embedding_model": embedding_model,
+                "version": version,
+                "doc_version": doc_version,
+                "hash": chunk["hash"],
+                "confidence_score": overrides.get("confidence_score", 1.0),
+            }
+
+            # Agregar campos específicos para user_context
+            if source_type == "user_context":
+                payload["user_id"] = overrides.get("user_id")
+                payload["snapshot_type"] = overrides.get("snapshot_type")
+                payload["timeframe"] = overrides.get("timeframe")
+
+            payloads.append(payload)
             vec_list.append(vec.tolist())
 
-        # Fase 5: Upsert a Qdrant
+        # Fase 5: Upsert a Qdrant (con routing dinámico)
         with _time_phase("upsert"):
-            store.upsert(ids, vec_list, payloads)
+            store.upsert(ids, vec_list, payloads, collection_name=target_collection)
         
         logger.info(
-            "Ingested doc_id={} chunks={} collection={} journal={} year={} category={} locale={} embedding_model={} version={}",
+            "Ingested doc_id={} chunks={} collection={} source_type={} journal={} year={} category={} locale={} embedding_model={} version={}",
             parsed.meta.doc_id,
             len(chunk_records),
-            settings.collection_name,
+            target_collection,
+            source_type,
             parsed.meta.journal,
             parsed.meta.year,
             category,
@@ -291,7 +302,9 @@ def ingest_one(req_dict: Dict) -> int:
                             }
                             for match in matches
                         ]
-                        store.set_topics(parsed.meta.doc_id, topic_ids, score_payload)
+                        store.set_topics(
+                            parsed.meta.doc_id, topic_ids, score_payload, collection_name=target_collection
+                        )
         
         # Registrar documento exitoso
         total_time = time.perf_counter() - start_total

@@ -16,5 +16,12 @@ export const publicRoutes: Routes = [
   {
     path: '',
     component: PublicPlaceholderComponent
+  },
+  {
+    path: 'wellness-intake',
+    loadChildren: () =>
+      import('./wellness-intake/wellness-intake.routes').then(
+        (m) => m.wellnessIntakeRoutes
+      ),
   }
 ];

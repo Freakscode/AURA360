@@ -15,6 +15,10 @@ from vectosvc.api.schemas import (
     HolisticSearchResponseMeta,
     HolisticSearchResult,
     NutritionPlanIngestRequest,
+    WeightedSearchRequest,
+    WeightedSearchResponse,
+    WeightedSearchResponseData,
+    WeightedSearchResult as WeightedResultSchema,
 )
 from vectosvc.config import service_settings, settings
 from vectosvc.core.dlq import dlq
@@ -363,6 +367,112 @@ def search(q: SearchQuery):
         for h in hits
     ]
     return {"hits": data}
+
+
+@app.post(
+    "/api/v1/holistic/weighted-search",
+    response_model=WeightedSearchResponse,
+    responses={
+        400: {"model": WeightedSearchResponse},
+        500: {"model": WeightedSearchResponse},
+    },
+)
+def weighted_search(payload: WeightedSearchRequest):
+    """
+    Weighted retrieval combining user_context (×1.5) and general corpus (×1.0).
+
+    This endpoint enables personalized search that prioritizes user's current
+    state (mood, activity, IKIGAI) over general biomedical knowledge.
+
+    Returns:
+        Top-K results sorted by weighted_score descending
+    """
+    from vectosvc.core.user_context_retriever import UserContextRetriever
+
+    start = time.perf_counter()
+    trace_id = payload.trace_id
+
+    _log_with_trace(
+        "weighted_search.request.received",
+        trace_id,
+        query=payload.query,
+        user_id=payload.user_id,
+        category=payload.category.value if payload.category else None,
+        guardian_type=payload.guardian_type,
+        top_k=payload.top_k,
+    )
+
+    try:
+        retriever = UserContextRetriever(embedding_model=payload.embedding_model)
+        results = retriever.weighted_search(
+            query=payload.query,
+            user_id=payload.user_id,
+            category=payload.category.value if payload.category else None,
+            guardian_type=payload.guardian_type,
+            topics=payload.topics,
+            top_k=payload.top_k,
+            user_context_limit=payload.user_context_limit,
+            general_limit=payload.general_limit,
+        )
+
+        # Convert to response schema
+        result_objects = [
+            WeightedResultSchema(
+                doc_id=r.doc_id,
+                text=r.text,
+                score=r.score,
+                weighted_score=r.weighted_score,
+                source_collection=r.source_collection,
+                category=r.category,
+                source_type=r.source_type,
+                metadata=r.payload,
+            )
+            for r in results
+        ]
+
+        took_ms = int((time.perf_counter() - start) * 1000)
+
+        _log_with_trace(
+            "weighted_search.request.completed",
+            trace_id,
+            took_ms=took_ms,
+            results=len(result_objects),
+            user_context_count=sum(1 for r in results if r.source_collection == "user_context"),
+            general_count=sum(1 for r in results if r.source_collection != "user_context"),
+        )
+
+        return WeightedSearchResponse(
+            status="success",
+            data=WeightedSearchResponseData(results=result_objects),
+            error=None,
+            meta={
+                "trace_id": trace_id,
+                "took_ms": took_ms,
+                "user_id": payload.user_id,
+                "user_context_weight": 1.5,
+                "general_weight": 1.0,
+            },
+        )
+
+    except Exception as exc:
+        _log_with_trace(
+            "weighted_search.request.failed",
+            trace_id,
+            error=str(exc),
+        )
+        return WeightedSearchResponse(
+            status="error",
+            data=None,
+            error={
+                "type": "search_error",
+                "message": f"Weighted search failed: {str(exc)}",
+                "details": {},
+            },
+            meta={
+                "trace_id": trace_id,
+                "took_ms": int((time.perf_counter() - start) * 1000),
+            },
+        )
 
 
 @app.get("/dlq")

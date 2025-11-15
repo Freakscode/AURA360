@@ -26,9 +26,11 @@ def health_check(request):
 
 
 urlpatterns = [
-    # Health check endpoint
+    # Health check endpoints (multiple paths for compatibility)
     path('api/health', health_check, name='health_check'),
-    
+    path('api/v1/health', health_check, name='health_check_v1'),
+    path('health', health_check, name='health_check_root'),
+
     # Panel de administración de Django
     path('admin/', admin.site.urls),
     

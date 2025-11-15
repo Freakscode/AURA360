@@ -1,0 +1,43 @@
+# Dockerfile for Vectordb API Service (AURA360)
+# FastAPI for vector ingestion and search
+# Separated from worker for independent scaling
+
+FROM python:3.11-slim AS base
+
+# Environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy dependency files
+COPY pyproject.toml ./
+
+# Install dependencies
+RUN pip install -U pip setuptools wheel && pip install -e .
+
+# Copy application code
+COPY vectosvc vectosvc
+COPY config config
+COPY scripts scripts
+
+# Health check - /readyz endpoint exists in vectosvc/api/http.py
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:8000/readyz', timeout=5).raise_for_status()" || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Start uvicorn
+CMD uvicorn vectosvc.api.http:app \
+    --host 0.0.0.0 \
+    --port ${PORT:-8000} \
+    --workers ${WEB_CONCURRENCY:-2} \
+    --log-level info

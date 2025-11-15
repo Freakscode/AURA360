@@ -1,0 +1,28 @@
+name: user-context-e2e
+
+on:
+  push:
+    paths:
+      - 'scripts/run_user_context_e2e.sh'
+      - 'services/vectordb/**'
+      - 'test_user_context_e2e.py'
+      - '.github/workflows/e2e-user-context.yml'
+  pull_request:
+    paths:
+      - 'scripts/run_user_context_e2e.sh'
+      - 'services/vectordb/**'
+      - 'test_user_context_e2e.py'
+      - '.github/workflows/e2e-user-context.yml'
+
+jobs:
+  run-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python dependencies for E2E script
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install requests
+      - name: Run user context E2E flow
+        run: |
+          ./scripts/run_user_context_e2e.sh

@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  vectordb-api:
+    build:
+      context: .
+      args:
+        EXTRAS: ""
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_GRPC=qdrant:6334
+      - BROKER_URL=redis://redis:6379/0
+      - RESULT_BACKEND=redis://redis:6379/1
+      - VECTOR_COLLECTION_NAME=user_context
+      - DEFAULT_EMBEDDING_MODEL=text-embedding-3-small
+      - EMBEDDING_VERSION=2025.10.27
+      - EMBEDDING_DIM=384
+      - VECTOR_DISTANCE=cosine
+      - API_BASE_URL=http://0.0.0.0:8000
+    command: ["uvicorn", "vectosvc.api.http:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  vectordb-worker:
+    build:
+      context: .
+      args:
+        EXTRAS: ""
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_GRPC=qdrant:6334
+      - BROKER_URL=redis://redis:6379/0
+      - RESULT_BACKEND=redis://redis:6379/1
+      - VECTOR_COLLECTION_NAME=user_context
+      - DEFAULT_EMBEDDING_MODEL=text-embedding-3-small
+      - EMBEDDING_VERSION=2025.10.27
+      - EMBEDDING_DIM=384
+      - VECTOR_DISTANCE=cosine
+    command: ["celery", "-A", "vectosvc.worker.tasks.celery", "worker", "--loglevel=info", "--concurrency=1"]

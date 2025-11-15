@@ -1,0 +1,56 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Angular
+/dist
+/tmp
+/out-tsc
+/bazel-out
+/.angular/cache
+.sass-cache/
+/connect.lock
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Git
+.git/
+.gitignore
+
+# Testing
+/coverage
+
+# Documentation
+*.md
+docs/
+README.md
+
+# Development tools
+Makefile
+angular.json.bak

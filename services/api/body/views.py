@@ -313,7 +313,7 @@ class NutritionPlanIngestCallbackView(APIView):
                 'plan_id': str(plan.id),
                 'auth_user_id': str(payload['auth_user_id']),
                 'job_id': str(payload['job_id']),
-                'created': created,
+                'was_created': created,
             },
         )
 

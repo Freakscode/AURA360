@@ -144,3 +144,44 @@ class NutritionPlanIngestRequest(BaseModel):
             ]
         }
     }
+
+
+class WeightedSearchRequest(BaseModel):
+    """Request for weighted retrieval combining user context and general corpus."""
+
+    trace_id: constr(strip_whitespace=True, min_length=1)
+    query: constr(strip_whitespace=True, min_length=1)
+    user_id: Optional[constr(strip_whitespace=True, min_length=1)] = Field(
+        None, description="User UUID for filtering user_context collection"
+    )
+    category: Optional[HolisticCategory] = Field(None, description="Category filter (mente, cuerpo, alma)")
+    guardian_type: Optional[str] = Field(None, description="Guardian type: mental, physical, spiritual")
+    topics: Optional[List[str]] = Field(None, description="Explicit topic filters")
+    top_k: int = Field(default=10, ge=1, le=50, description="Number of final results after merging")
+    user_context_limit: int = Field(default=5, ge=1, le=20, description="Max results from user_context")
+    general_limit: int = Field(default=10, ge=1, le=30, description="Max results from general corpus")
+    embedding_model: Optional[constr(strip_whitespace=True, min_length=1)] = None
+
+
+class WeightedSearchResult(BaseModel):
+    """Single result from weighted retrieval."""
+
+    doc_id: str
+    text: str
+    score: float = Field(..., description="Original cosine similarity score")
+    weighted_score: float = Field(..., description="Boosted score for ranking")
+    source_collection: str = Field(..., description="Collection origin (user_context or general)")
+    category: str
+    source_type: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class WeightedSearchResponseData(BaseModel):
+    results: List[WeightedSearchResult] = Field(default_factory=list)
+
+
+class WeightedSearchResponse(BaseModel):
+    status: Literal["success", "error"]
+    data: Optional[WeightedSearchResponseData] = None
+    error: Optional[Dict[str, Any]] = None
+    meta: Dict[str, Any]

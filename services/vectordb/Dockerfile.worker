@@ -1,0 +1,42 @@
+# Dockerfile for Vectordb Worker (AURA360)
+# Celery worker for async document ingestion and processing
+# Separated from API for independent scaling
+
+FROM python:3.11-slim AS base
+
+# Environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy dependency files
+COPY pyproject.toml ./
+
+# Install dependencies
+RUN pip install -U pip setuptools wheel && pip install -e .
+
+# Copy application code
+COPY vectosvc vectosvc
+COPY config config
+COPY scripts scripts
+
+# Celery worker health check (checks if worker is responsive)
+HEALTHCHECK --interval=60s --timeout=30s --start-period=60s --retries=3 \
+  CMD celery -A vectosvc.worker.tasks.celery inspect ping -d celery@$HOSTNAME || exit 1
+
+# Start Celery worker
+# Concurrency based on CPU cores, default 2
+CMD celery -A vectosvc.worker.tasks.celery worker \
+    --loglevel=info \
+    --concurrency=${CELERY_CONCURRENCY:-2} \
+    --max-tasks-per-child=100 \
+    --time-limit=300 \
+    --soft-time-limit=240

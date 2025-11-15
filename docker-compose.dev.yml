@@ -1,0 +1,225 @@
+version: "3.9"
+
+# ============================================================================
+# AURA360 - Development Environment with Kafka
+# ============================================================================
+# Uso: docker-compose -f docker-compose.dev.yml up -d
+#
+# Services:
+#   - Kafka + Zookeeper (event streaming)
+#   - Qdrant (vector database)
+#   - Redis (cache + Celery backend for batch jobs)
+#   - Schema Registry (Avro schema management)
+#   - Kafka UI (debugging interface)
+#   - GROBID (PDF processing)
+# ============================================================================
+
+services:
+  # ============================================================================
+  # KAFKA ECOSYSTEM
+  # ============================================================================
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    hostname: zookeeper
+    container_name: aura360-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: WARN
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    hostname: kafka
+    container_name: aura360-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+      KAFKA_TOOLS_LOG4J_LOGLEVEL: ERROR
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    hostname: schema-registry
+    container_name: aura360-schema-registry
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: WARN
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: aura360-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: aura360-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ============================================================================
+  # DATABASES & STORAGE
+  # ============================================================================
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: aura360-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: aura360-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  grobid:
+    image: lfoppiano/grobid:0.7.2
+    container_name: aura360-grobid
+    restart: unless-stopped
+    environment:
+      - GROBID_OPTS=--max-connection=10 --max-threads=10
+    ports:
+      - "8070:8070"
+      - "8071:8071"
+
+  # ============================================================================
+  # INIT SERVICE - Create Kafka Topics
+  # ============================================================================
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: aura360-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "Creating Kafka topics..."
+
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+          --topic aura360.user.events \
+          --partitions 3 \
+          --replication-factor 1 \
+          --config retention.ms=604800000
+
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+          --topic aura360.context.aggregated \
+          --partitions 3 \
+          --replication-factor 1 \
+          --config retention.ms=604800000
+
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+          --topic aura360.context.vectorized \
+          --partitions 3 \
+          --replication-factor 1 \
+          --config retention.ms=604800000
+
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+          --topic aura360.guardian.requests \
+          --partitions 3 \
+          --replication-factor 1 \
+          --config retention.ms=604800000
+
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+          --topic aura360.guardian.responses \
+          --partitions 3 \
+          --replication-factor 1 \
+          --config retention.ms=604800000
+
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+          --topic aura360.vectordb.ingest \
+          --partitions 3 \
+          --replication-factor 1 \
+          --config retention.ms=604800000
+
+        echo "Topics created successfully!"
+        kafka-topics --bootstrap-server kafka:29092 --list
+
+volumes:
+  zookeeper_data:
+    name: aura360_zookeeper_data
+  zookeeper_logs:
+    name: aura360_zookeeper_logs
+  kafka_data:
+    name: aura360_kafka_data
+  qdrant_data:
+    name: aura360_qdrant_data
+  redis_data:
+    name: aura360_redis_data
+
+networks:
+  default:
+    name: aura360-network
+    driver: bridge

@@ -88,5 +88,36 @@ services:
     working_dir: /app
     command: ["celery", "-A", "vectosvc.worker.tasks.celery", "worker", "--loglevel=info", "--concurrency=2"]
 
+  vectordb-consumer:
+    build:
+      context: .
+      args:
+        EXTRAS: "gcs"
+    depends_on:
+      - qdrant
+      - redis
+      - grobid
+    environment:
+      - MESSAGING_BACKEND=${MESSAGING_BACKEND:-kafka}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_GRPC=qdrant:6334
+      - BROKER_URL=redis://redis:6379/0
+      - RESULT_BACKEND=redis://redis:6379/1
+      - DEFAULT_EMBEDDING_MODEL=${DEFAULT_EMBEDDING_MODEL:-text-embedding-3-small}
+      - EMBEDDING_VERSION=${EMBEDDING_VERSION:-2025.10.27}
+      - EMBEDDING_DIM=384
+      - VECTOR_DISTANCE=cosine
+      - VECTOR_COLLECTION_NAME=${VECTOR_COLLECTION_NAME:-holistic_memory}
+      - GROBID_URL=http://grobid:8070
+      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
+      - GCS_PROJECT=${GCS_PROJECT:-}
+    volumes:
+      - ${HOME}/.config/gcloud:/gcloud:ro
+      - .:/app:ro
+    working_dir: /app
+    command: ["python", "-m", "vectosvc.kafka.consumer"]
+    restart: unless-stopped
+
 volumes:
   qdrant_storage:

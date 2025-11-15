@@ -199,6 +199,168 @@ def _push_to_dlq(
         logger.error("Failed to push nutrition plan job to DLQ: {}", dlq_error)
 
 
+# ============================================================================
+# KAFKA EVENT FALLBACK TASKS
+# ============================================================================
+# These tasks provide Celery fallback when Kafka is unavailable
+# They mirror the logic in vectosvc.kafka.consumer
+# ============================================================================
+
+@celery.task(
+    name="vectosvc.worker.tasks.process_mood_created",
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+)
+def process_mood_created(self, event_dict: dict):
+    """
+    Celery fallback for user.mood.created event.
+
+    Mirrors logic from vectosvc.kafka.consumer.handle_mood_created.
+
+    Args:
+        event_dict: Serialized MoodCreatedEvent
+    """
+    from vectosvc.kafka.consumer import aggregate_user_context
+
+    user_id = event_dict.get("user_id")
+    event_data = event_dict.get("data", {})
+    event_type = event_dict.get("event_type", "user.mood.created")
+
+    logger.info("Processing mood event (Celery fallback): user_id={}", user_id)
+
+    try:
+        # Aggregate context
+        context_data = aggregate_user_context(
+            user_id=user_id,
+            event_data=event_data,
+            event_type=event_type,
+        )
+
+        # Trigger vectorization (chain to next task)
+        process_context_aggregated.delay({
+            "user_id": user_id,
+            "trace_id": event_dict.get("trace_id"),
+            "context_data": context_data,
+        })
+
+        logger.info("Context aggregated (Celery): user_id={}", user_id)
+        return {"status": "ok", "user_id": user_id}
+
+    except Exception as exc:
+        logger.error("Failed to process mood event (Celery): user_id={} error={}", user_id, exc)
+        raise
+
+
+@celery.task(
+    name="vectosvc.worker.tasks.process_activity_created",
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+)
+def process_activity_created(self, event_dict: dict):
+    """
+    Celery fallback for user.activity.created event.
+
+    Mirrors logic from vectosvc.kafka.consumer.handle_activity_created.
+
+    Args:
+        event_dict: Serialized ActivityCreatedEvent
+    """
+    from vectosvc.kafka.consumer import aggregate_user_context
+
+    user_id = event_dict.get("user_id")
+    event_data = event_dict.get("data", {})
+    event_type = event_dict.get("event_type", "user.activity.created")
+
+    logger.info("Processing activity event (Celery fallback): user_id={}", user_id)
+
+    try:
+        # Aggregate context
+        context_data = aggregate_user_context(
+            user_id=user_id,
+            event_data=event_data,
+            event_type=event_type,
+        )
+
+        # Trigger vectorization (chain to next task)
+        process_context_aggregated.delay({
+            "user_id": user_id,
+            "trace_id": event_dict.get("trace_id"),
+            "context_data": context_data,
+        })
+
+        logger.info("Context aggregated (Celery): user_id={}", user_id)
+        return {"status": "ok", "user_id": user_id}
+
+    except Exception as exc:
+        logger.error("Failed to process activity event (Celery): user_id={} error={}", user_id, exc)
+        raise
+
+
+@celery.task(
+    name="vectosvc.worker.tasks.process_context_aggregated",
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+)
+def process_context_aggregated(self, event_dict: dict):
+    """
+    Celery fallback for context.aggregated event.
+
+    Mirrors logic from vectosvc.kafka.consumer.handle_context_aggregated.
+
+    Args:
+        event_dict: Serialized ContextAggregatedEvent
+    """
+    from vectosvc.kafka.consumer import vectorize_context
+
+    user_id = event_dict.get("user_id")
+    context_data = event_dict.get("context_data", {})
+    trace_id = event_dict.get("trace_id")
+
+    logger.info("Processing context aggregation (Celery fallback): user_id={}", user_id)
+
+    try:
+        # Vectorize and ingest
+        result = vectorize_context(
+            context_data=context_data,
+            user_id=user_id,
+            trace_id=trace_id,
+        )
+
+        if result["status"] == "completed":
+            logger.info(
+                "Context vectorized (Celery): user_id={} doc_id={} chunks={}",
+                user_id,
+                result["doc_id"],
+                result["chunk_count"],
+            )
+            return {
+                "status": "ok",
+                "user_id": user_id,
+                "doc_id": result["doc_id"],
+                "chunks": result["chunk_count"],
+            }
+        else:
+            logger.warning(
+                "Context vectorization failed (Celery): user_id={} status={}",
+                user_id,
+                result["status"],
+            )
+            return {"status": "failed", "user_id": user_id, "reason": result.get("error")}
+
+    except Exception as exc:
+        logger.error("Failed to vectorize context (Celery): user_id={} error={}", user_id, exc)
+        raise
+
+
 @celery.task(
     name="nutrition_plan_ingest_task",
     bind=True,
