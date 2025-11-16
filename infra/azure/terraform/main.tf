@@ -109,9 +109,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
   sku_tier            = "Standard"
 
   default_node_pool {
-    name                = "system"
-    vm_size             = var.aks_vm_size
-    node_count          = var.aks_node_count
+    name    = "system"
+    vm_size = var.aks_vm_size
+    # AKS no longer permite ajustar `node_count` cuando se usa auto-scaling; dejamos
+    # el valor nulo para que el servicio use el valor derivado del min/max.
+    node_count          = null
     vnet_subnet_id      = azurerm_subnet.aks.id
     type                = "VirtualMachineScaleSets"
     enable_auto_scaling = true
