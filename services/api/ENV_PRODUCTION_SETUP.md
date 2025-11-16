@@ -210,7 +210,7 @@ Luego re-despliega:
 
 ## 📚 Referencias
 
-- [PRODUCTION_ENV_SETUP.md](../../PRODUCTION_ENV_SETUP.md) - Guía detallada paso a paso
+- [PRODUCTION_ENV_SETUP.md](../../docs/runbooks/deployment/PRODUCTION_ENV_SETUP.md) - Guía detallada paso a paso
 - [DEPLOYMENT_GCLOUD.md](../../docs/DEPLOYMENT_GCLOUD.md) - Documentación de despliegue
 - [Supabase Docs](https://supabase.com/docs)
 - [Confluent Cloud Docs](https://docs.confluent.io/cloud/current/get-started/index.html)

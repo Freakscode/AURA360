@@ -44,7 +44,7 @@ AURA360/
 ├── .gitignore                    # Global gitignore (consolidated)
 ├── README.md                     # Main repository README
 ├── CONTRIBUTING.md               # Contribution guidelines
-├── CLAUDE.md                     # AI development guide (updated paths)
+├── docs/runbooks/agents/CLAUDE.md # AI development guide (ubicación actual)
 └── AURA360.code-workspace        # VS Code workspace configuration
 ```
 
@@ -221,4 +221,4 @@ cp -r AURA360-backup AURA360
 Refer to:
 - [README.md](../README.md) for quick start
 - [CONTRIBUTING.md](../CONTRIBUTING.md) for development guidelines
-- [CLAUDE.md](../CLAUDE.md) for AI development assistance
+- [CLAUDE.md](./runbooks/agents/CLAUDE.md) for AI development assistance

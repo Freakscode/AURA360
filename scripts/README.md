@@ -254,14 +254,14 @@ Ver documentación original más arriba para detalles completos.
 ## 📚 Documentación Adicional
 
 ### Guías de Deployment
-- [DEPLOYMENT.md](../DEPLOYMENT.md) - Guía completa de deployment (Railway + Confluent)
+- [DEPLOYMENT.md](../docs/runbooks/deployment/DEPLOYMENT.md) - Guía completa de deployment (Railway + Confluent)
 - [DEPLOYMENT_GCLOUD.md](../docs/DEPLOYMENT_GCLOUD.md) - Documentación técnica de Google Cloud
-- [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md) - Checklist paso a paso
-- [DEPLOYMENT_STATUS.md](../DEPLOYMENT_STATUS.md) - Estado actual y plan de deployment
+- [DEPLOYMENT_CHECKLIST.md](../docs/runbooks/deployment/DEPLOYMENT_CHECKLIST.md) - Checklist paso a paso
+- [DEPLOYMENT_STATUS.md](../docs/runbooks/deployment/DEPLOYMENT_STATUS.md) - Estado actual y plan de deployment
 
 ### Guías de Testing
 - [INTEGRATION_TESTING.md](../docs/INTEGRATION_TESTING.md) - Guía completa de pruebas de integración
-- [TESTING.md](../services/api/TESTING.md) - Testing del backend Django
+- [README_PRUEBAS.md](../docs/testing/README_PRUEBAS.md) - Marco general de pruebas del backend
 
 ### Documentación de Servicios
 - [API Backend](../services/api/README.md) - Django REST API
@@ -352,7 +352,7 @@ Ver documentación original más arriba para detalles completos.
 ## 📊 Estado de Deployment
 
 Para verificar el estado actual de los servicios desplegados, consulta:
-- [DEPLOYMENT_STATUS.md](../DEPLOYMENT_STATUS.md) - Estado actualizado de todos los servicios
+- [DEPLOYMENT_STATUS.md](../docs/runbooks/deployment/DEPLOYMENT_STATUS.md) - Estado actualizado de todos los servicios
 
 Para ver logs en tiempo real:
 ```bash

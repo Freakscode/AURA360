@@ -27,3 +27,6 @@ dependencies = [
     "confluent-kafka>=2.3.0",
     "redis>=5.0.0",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["agents_service", "holistic_agent", "nutritional_agent", "api", "services", "kafka", "scripts"]

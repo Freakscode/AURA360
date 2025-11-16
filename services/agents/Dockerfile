@@ -20,14 +20,11 @@ WORKDIR /app
 # Install uv for faster dependency management
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy dependency files
-COPY pyproject.toml ./
+# Copy all code first (needed for hatchling build)
+COPY . .
 
 # Install dependencies
 RUN uv pip install --system --no-cache .
-
-# Copy application code
-COPY . .
 
 # Health check - /readyz endpoint already exists in main.py
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

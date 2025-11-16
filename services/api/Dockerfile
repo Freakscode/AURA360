@@ -20,14 +20,20 @@ WORKDIR /app
 # Install uv for faster dependency management
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
+# Copy shared messaging module first (required dependency)
+COPY services/shared /app/shared
+
 # Copy dependency files
-COPY pyproject.toml ./
+COPY services/api/pyproject.toml ./
+
+# Replace absolute path with relative path for Docker build
+RUN sed -i 's|file:///Users/freakscode/Proyectos%202025/AURA360/services/shared|file:///app/shared|g' pyproject.toml
 
 # Install dependencies using uv
 RUN uv pip install --system --no-cache .
 
 # Copy application code
-COPY . .
+COPY services/api/ .
 
 # Collect static files for production
 RUN python manage.py collectstatic --noinput --clear

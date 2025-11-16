@@ -117,8 +117,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vnet_subnet_id      = azurerm_subnet.aks.id
     type                = "VirtualMachineScaleSets"
     enable_auto_scaling = true
-    min_count           = 3
-    max_count           = 10
+    min_count           = 2
+    max_count           = 5
   }
 
   identity {

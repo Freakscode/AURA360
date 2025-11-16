@@ -50,6 +50,7 @@ gcloud-key.json
 
 # Documentation
 *.md
+!README.md
 docs/
 
 # Development tools

@@ -208,6 +208,6 @@ Para actualizar el formulario después de cambios:
 ## 📚 Referencias
 
 - [DEPLOYMENT_GCLOUD.md](../DEPLOYMENT_GCLOUD.md) - Documentación general de despliegue
-- [PRODUCTION_ENV_SETUP.md](../PRODUCTION_ENV_SETUP.md) - Configuración de variables de entorno
+- [PRODUCTION_ENV_SETUP.md](./runbooks/deployment/PRODUCTION_ENV_SETUP.md) - Configuración de variables de entorno
 - [Wellness Intake Component](../../apps/web/src/app/features/public/wellness-intake/) - Código del formulario
 

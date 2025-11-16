@@ -133,9 +133,10 @@ AURA360/
 │   ├── vectordb/        # Vector database service
 │   └── pdf-extraction/  # PDF processing
 ├── docs/                # Documentation
+│   └── runbooks/        # Operative guides (deployment, kafka, setup, agents)
 ├── scripts/             # Shared scripts
 ├── .github/             # CI/CD workflows
-└── CLAUDE.md            # AI development guide
+└── CONTRIBUTING.md      # Contribution guidelines
 ```
 
 ## Key Features
@@ -179,6 +180,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines and commit c
 - [Testing Guide](./docs/testing/)
 - [Module Documentation](./docs/modules/)
 - [API Documentation](./docs/api/)
+- [Runbooks & Operaciones](./docs/runbooks/README.md)
 
 ## License
 
