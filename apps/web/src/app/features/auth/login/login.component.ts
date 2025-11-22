@@ -275,31 +275,10 @@ export class LoginComponent implements OnInit, OnDestroy {
    * @param newState - Nuevo estado parcial o completo
    */
   private setState(newState: Partial<LoginState>): void {
-    this.state.update(current => {
-      const nextState = {
-        ...current,
-        ...newState
-      };
-
-      if (current.isSubmitting !== nextState.isSubmitting) {
-        this.updateFormDisabledState(nextState.isSubmitting);
-      }
-
-      return nextState;
-    });
-  }
-
-  private updateFormDisabledState(shouldDisable: boolean): void {
-    if (shouldDisable) {
-      if (!this.loginForm.disabled) {
-        this.loginForm.disable({ emitEvent: false });
-      }
-      return;
-    }
-
-    if (this.loginForm.disabled) {
-      this.loginForm.enable({ emitEvent: false });
-    }
+    this.state.update(current => ({
+      ...current,
+      ...newState
+    }));
   }
 
   /**

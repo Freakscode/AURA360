@@ -11,6 +11,7 @@ def repository_for(uri: str) -> BlobRepository:
     """Return a repository implementation based on URI scheme.
 
     - gs://... -> GCSRepository (requires optional dependency)
+    - s3://... -> S3Repository (requires optional dependency)
     - http(s)://... -> HTTPRepository
     - file:///... or bare path -> LocalFSRepository
     """
@@ -28,6 +29,14 @@ def repository_for(uri: str) -> BlobRepository:
         return GCSRepository(
             project=getattr(settings, "gcs_project", None),
             user_project=getattr(settings, "gcs_user_project", None),
+        )
+    if scheme == "s3":
+        from .s3 import S3Repository
+        # lazily import to keep dependency optional
+        from vectosvc.config import settings
+
+        return S3Repository(
+            region=getattr(settings, "s3_region", None),
         )
     raise ValueError(f"Unsupported URI scheme for repository: {scheme or 'file'}")
 

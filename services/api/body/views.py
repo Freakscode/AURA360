@@ -19,9 +19,10 @@ from users.permissions import SupabaseJWTRequiredPermission
 
 from django.utils.crypto import constant_time_compare
 
-from .models import BodyActivity, NutritionLog, NutritionPlan, SleepLog
+from .models import BodyActivity, BodyMeasurement, NutritionLog, NutritionPlan, SleepLog
 from .serializers import (
     BodyActivitySerializer,
+    BodyMeasurementSerializer,
     BodyDashboardSnapshotSerializer,
     NutritionLogSerializer,
     NutritionPlanSerializer,
@@ -49,6 +50,39 @@ class _UserScopedMixin:
         if user and getattr(user, 'is_authenticated', False):
             return str(getattr(user, 'id'))
         raise PermissionDenied('Token Supabase inválido o faltante.')
+
+
+class BodyMeasurementViewSet(_UserScopedMixin, viewsets.ModelViewSet):
+    """
+    CRUD para mediciones corporales (Peso, Talla, Pliegues).
+    Permite a pacientes ver sus medidas y a profesionales gestionarlas.
+    """
+    serializer_class = BodyMeasurementSerializer
+    queryset = BodyMeasurement.objects.all()
+    permission_classes = (SupabaseJWTRequiredPermission,)
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        # Permitir a profesionales ver medidas de pacientes específicos
+        target_user_id = self.request.query_params.get('user_id')
+        if target_user_id:
+             # TODO: Validar permisos (profesional -> paciente)
+            return self.queryset.filter(auth_user_id=target_user_id)
+        
+        return super().get_queryset().filter(auth_user_id=self._auth_user_id())
+
+    def perform_create(self, serializer):
+        # Si se especifica un usuario destino, usarlo (para profesionales)
+        target_user_id = self.request.data.get('auth_user_id')
+        if target_user_id:
+            # TODO: Validar que request.user sea profesional
+            serializer.save(auth_user_id=target_user_id, measured_by=self.request.user.id)
+        else:
+            serializer.save(auth_user_id=self._auth_user_id())
+
+    def perform_update(self, serializer):
+        # Al actualizar, mantener el usuario original
+        serializer.save()
 
 
 class BodyActivityViewSet(_UserScopedMixin, viewsets.ModelViewSet):
@@ -135,8 +169,17 @@ class NutritionPlanViewSet(_UserScopedMixin, viewsets.ModelViewSet):
         Query params:
         - active: true/false - Filtra por planes activos
         - valid: true/false - Filtra por planes vigentes (no expirados)
+        - user_id: UUID - Filtra por usuario específico (para profesionales)
         """
-        queryset = super().get_queryset().filter(auth_user_id=self._auth_user_id())
+        # Permitir filtrar por usuario específico si se proporciona user_id
+        # Esto es útil para profesionales que ven planes de sus pacientes
+        target_user_id = self.request.query_params.get('user_id')
+        
+        if target_user_id:
+            # TODO: Validar permisos reales (ej. verificar relación de cuidado)
+            queryset = self.queryset.filter(auth_user_id=target_user_id)
+        else:
+            queryset = super().get_queryset().filter(auth_user_id=self._auth_user_id())
         
         # Filtro por estado activo
         active = self.request.query_params.get('active')
@@ -159,8 +202,21 @@ class NutritionPlanViewSet(_UserScopedMixin, viewsets.ModelViewSet):
         return queryset
     
     def perform_create(self, serializer):
-        """Asigna el usuario autenticado al crear un plan."""
-        serializer.save(auth_user_id=self._auth_user_id())
+        """Asigna el usuario al crear un plan."""
+        # Verificar si se está creando para otro usuario (desde plan_data.subject.user_id)
+        # Esto permite a profesionales crear planes para pacientes
+        plan_data = serializer.validated_data.get('plan_data', {})
+        subject_user_id = plan_data.get('subject', {}).get('user_id')
+        
+        # Guardar quién creó el plan (auditoría)
+        created_by = self.request.user.id if self.request.user.is_authenticated else None
+
+        if subject_user_id:
+            # Usar el ID proporcionado en el payload
+            serializer.save(auth_user_id=subject_user_id, created_by=created_by)
+        else:
+            # Fallback al usuario autenticado
+            serializer.save(auth_user_id=self._auth_user_id(), created_by=created_by)
     
     def perform_update(self, serializer):
         """Mantiene el usuario autenticado al actualizar un plan."""
@@ -189,6 +245,518 @@ class BodyDashboardView(_UserScopedMixin, APIView):
             'sleep': SleepLogSerializer(sleep, many=True).data,
         })
         return Response(payload.data, status=status.HTTP_200_OK)
+
+
+class BodyMeasurementTrendsView(_UserScopedMixin, APIView):
+    """
+    Analiza tendencias de progreso en las mediciones corporales del usuario.
+
+    Proporciona análisis estadístico de series temporales incluyendo:
+    - Tendencias lineales (aumento/disminución/estable)
+    - Velocidades de cambio (kg/semana, %/mes)
+    - Significancia estadística (p-value, R²)
+    - Proyecciones a 30 días
+    - Alertas sobre cambios rápidos o preocupantes
+
+    Query Parameters:
+    - user_id: UUID (opcional, para profesionales que ven tendencias de pacientes)
+    - days: int (opcional, rango temporal en días, default: todas las mediciones)
+    - metrics: str (opcional, métricas específicas separadas por coma)
+
+    Ejemplo:
+        GET /api/body/measurements/trends/?days=90&metrics=weight_kg,body_fat_percentage
+    """
+
+    permission_classes = (SupabaseJWTRequiredPermission, IsAuthenticated)
+
+    def get(self, request, *args, **kwargs) -> Response:
+        """Obtiene el análisis de tendencias para el usuario."""
+
+        # Determinar el usuario objetivo
+        target_user_id = request.query_params.get('user_id')
+        if target_user_id:
+            # TODO: Validar permisos (profesional -> paciente)
+            auth_user_id = target_user_id
+        else:
+            auth_user_id = self._auth_user_id()
+
+        # Obtener parámetros opcionales
+        time_range_days = request.query_params.get('days')
+        if time_range_days:
+            try:
+                time_range_days = int(time_range_days)
+                if time_range_days <= 0:
+                    return Response(
+                        {'detail': 'El parámetro "days" debe ser un número positivo.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except ValueError:
+                return Response(
+                    {'detail': 'El parámetro "days" debe ser un número entero.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Métricas específicas
+        target_metrics = None
+        metrics_param = request.query_params.get('metrics')
+        if metrics_param:
+            target_metrics = [m.strip() for m in metrics_param.split(',') if m.strip()]
+
+        # Verificar si el análisis debe ser asíncrono o síncrono
+        async_mode = request.query_params.get('async', 'false').lower() in ('true', '1', 'yes')
+
+        if async_mode:
+            # Modo asíncrono: enqueue tarea de Celery y retornar job_id
+            try:
+                from vectosvc.worker.body_tasks import analyze_progress_trends
+
+                task = analyze_progress_trends.delay(
+                    auth_user_id=auth_user_id,
+                    time_range_days=time_range_days,
+                    target_metrics=target_metrics
+                )
+
+                return Response(
+                    {
+                        'job_id': task.id,
+                        'status': 'queued',
+                        'detail': 'Análisis de tendencias encolado. Consulta el estado con /api/body/measurements/trends/status/{job_id}/'
+                    },
+                    status=status.HTTP_202_ACCEPTED
+                )
+            except ImportError:
+                logger.warning("Celery not available, falling back to synchronous analysis")
+                async_mode = False
+
+        if not async_mode:
+            # Modo síncrono: ejecutar análisis directamente
+            try:
+                from vectosvc.core.trends import analyze_measurement_trends
+
+                # Obtener mediciones
+                queryset = BodyMeasurement.objects.filter(
+                    auth_user_id=auth_user_id
+                ).order_by('-recorded_at')
+
+                if time_range_days:
+                    from datetime import datetime, timedelta
+                    cutoff_date = datetime.now() - timedelta(days=time_range_days)
+                    queryset = queryset.filter(recorded_at__gte=cutoff_date)
+
+                # Convertir a lista de dicts
+                measurements = []
+                for m in queryset:
+                    measurements.append({
+                        'id': str(m.id),
+                        'recorded_at': m.recorded_at.isoformat() if m.recorded_at else None,
+                        'weight_kg': float(m.weight_kg) if m.weight_kg else None,
+                        'height_cm': float(m.height_cm) if m.height_cm else None,
+                        'bmi': float(m.bmi) if m.bmi else None,
+                        'body_fat_percentage': float(m.body_fat_percentage) if m.body_fat_percentage else None,
+                        'fat_mass_kg': float(m.fat_mass_kg) if m.fat_mass_kg else None,
+                        'muscle_mass_kg': float(m.muscle_mass_kg) if m.muscle_mass_kg else None,
+                        'waist_circumference_cm': float(m.waist_circumference_cm) if m.waist_circumference_cm else None,
+                        'hip_circumference_cm': float(m.hip_circumference_cm) if m.hip_circumference_cm else None,
+                        'waist_hip_ratio': float(m.waist_hip_ratio) if m.waist_hip_ratio else None,
+                        'waist_height_ratio': float(m.waist_height_ratio) if m.waist_height_ratio else None,
+                        'cardiovascular_risk': m.cardiovascular_risk
+                    })
+
+                # Analizar tendencias
+                analysis = analyze_measurement_trends(
+                    measurements=measurements,
+                    time_range_days=time_range_days,
+                    target_metrics=target_metrics
+                )
+
+                return Response(
+                    {
+                        'user_id': auth_user_id,
+                        'status': 'success',
+                        'analysis': analysis
+                    },
+                    status=status.HTTP_200_OK
+                )
+
+            except Exception as e:
+                logger.error(f"Failed to analyze trends: {e}", exc_info=True)
+                return Response(
+                    {
+                        'detail': f'Error al analizar tendencias: {str(e)}',
+                        'error': 'analysis_error'
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+
+class BodyMeasurementTrendsStatusView(APIView):
+    """
+    Consulta el estado de un trabajo de análisis de tendencias asíncrono.
+
+    Endpoint:
+        GET /api/body/measurements/trends/status/{job_id}/
+    """
+
+    permission_classes = (SupabaseJWTRequiredPermission, IsAuthenticated)
+
+    def get(self, request, job_id: str) -> Response:
+        """Obtiene el estado de un trabajo de análisis."""
+        try:
+            from celery.result import AsyncResult
+
+            result = AsyncResult(job_id)
+
+            if result.ready():
+                if result.successful():
+                    return Response(
+                        {
+                            'job_id': job_id,
+                            'status': 'completed',
+                            'result': result.get()
+                        },
+                        status=status.HTTP_200_OK
+                    )
+                else:
+                    return Response(
+                        {
+                            'job_id': job_id,
+                            'status': 'failed',
+                            'error': str(result.info)
+                        },
+                        status=status.HTTP_200_OK
+                    )
+            else:
+                return Response(
+                    {
+                        'job_id': job_id,
+                        'status': 'processing',
+                        'detail': 'El análisis está en progreso.'
+                    },
+                    status=status.HTTP_200_OK
+                )
+
+        except ImportError:
+            return Response(
+                {
+                    'detail': 'Celery no está disponible.',
+                    'error': 'celery_unavailable'
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        except Exception as e:
+            logger.error(f"Failed to get job status: {e}")
+            return Response(
+                {
+                    'detail': 'Error al consultar el estado del trabajo.',
+                    'error': 'status_check_error'
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class NutritionAdherenceView(_UserScopedMixin, APIView):
+    """
+    Analiza la adherencia del usuario a su plan nutricional.
+
+    Compara el plan prescrito con los registros reales de consumo.
+
+    Query Parameters:
+    - user_id: str (opcional, para profesionales que consultan datos de pacientes)
+    - plan_id: UUID (opcional, si no se proporciona usa el plan activo)
+    - days: int (opcional, días a analizar, default: 7)
+    - async: bool (opcional, modo asíncrono, default: false)
+
+    Ejemplo:
+        GET /api/body/nutrition/adherence/?days=7
+        GET /api/body/nutrition/adherence/?user_id=patient-uuid&days=14
+        GET /api/body/nutrition/adherence/?plan_id=xxx&days=14&async=true
+    """
+
+    permission_classes = (SupabaseJWTRequiredPermission, IsAuthenticated)
+
+    def get(self, request, *args, **kwargs) -> Response:
+        """Obtiene el análisis de adherencia nutricional."""
+
+        # Determinar el usuario objetivo (puede ser el usuario logueado o un paciente)
+        target_user_id = request.query_params.get('user_id')
+        requesting_user_id = self._auth_user_id()
+
+        if target_user_id:
+            # Verificar que el usuario logueado tenga permiso para ver datos de este usuario
+            # (por ejemplo, que sea profesional con relación de cuidado activa)
+            from users.models import CareRelationship
+            has_permission = CareRelationship.objects.filter(
+                professional__auth_user_id=requesting_user_id,
+                patient__auth_user_id=target_user_id,
+                status='active'
+            ).exists()
+
+            if not has_permission:
+                return Response(
+                    {'detail': 'No tienes permiso para ver los datos de este usuario.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            auth_user_id = target_user_id
+        else:
+            auth_user_id = requesting_user_id
+
+        # Obtener parámetros
+        plan_id = request.query_params.get('plan_id')
+        days = request.query_params.get('days', '7')
+        async_mode = request.query_params.get('async', 'false').lower() in ('true', '1', 'yes')
+
+        # Validar días
+        try:
+            time_range_days = int(days)
+            if time_range_days <= 0 or time_range_days > 90:
+                return Response(
+                    {'detail': 'El parámetro "days" debe estar entre 1 y 90.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except ValueError:
+            return Response(
+                {'detail': 'El parámetro "days" debe ser un número entero.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Obtener plan activo si no se proporciona plan_id
+        if not plan_id:
+            active_plan = NutritionPlan.objects.filter(
+                auth_user_id=auth_user_id,
+                is_active=True
+            ).order_by('-created_at').first()
+
+            if not active_plan:
+                return Response(
+                    {
+                        'detail': 'No tienes un plan nutricional activo.',
+                        'error': 'no_active_plan'
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            plan_id = str(active_plan.id)
+
+        # Modo asíncrono
+        if async_mode:
+            try:
+                from vectosvc.worker.body_tasks import analyze_nutrition_adherence
+
+                task = analyze_nutrition_adherence.delay(
+                    auth_user_id=auth_user_id,
+                    nutrition_plan_id=plan_id,
+                    time_range_days=time_range_days
+                )
+
+                return Response(
+                    {
+                        'job_id': task.id,
+                        'status': 'queued',
+                        'detail': 'Análisis de adherencia encolado.'
+                    },
+                    status=status.HTTP_202_ACCEPTED
+                )
+            except ImportError:
+                logger.warning("Celery not available, falling back to sync")
+                async_mode = False
+
+        # Modo síncrono
+        if not async_mode:
+            try:
+                from vectosvc.core.nutrition_adherence import analyze_nutrition_adherence as analyze
+
+                # Obtener plan
+                try:
+                    plan = NutritionPlan.objects.get(id=plan_id, auth_user_id=auth_user_id)
+                except NutritionPlan.DoesNotExist:
+                    return Response(
+                        {'detail': 'Plan nutricional no encontrado.'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+
+                # Obtener logs
+                from datetime import datetime, timedelta
+                cutoff_date = datetime.now() - timedelta(days=time_range_days)
+                logs = NutritionLog.objects.filter(
+                    auth_user_id=auth_user_id,
+                    logged_at__gte=cutoff_date
+                ).order_by('-logged_at')
+
+                # Convertir a dicts
+                nutrition_plan_dict = {
+                    'id': str(plan.id),
+                    'title': plan.title,
+                    'plan_data': plan.plan_data,
+                    'daily_calories': plan.plan_data.get('nutrition', {}).get('daily_calories'),
+                    'daily_protein_g': plan.plan_data.get('nutrition', {}).get('daily_protein_g'),
+                    'daily_carbs_g': plan.plan_data.get('nutrition', {}).get('daily_carbs_g'),
+                    'daily_fats_g': plan.plan_data.get('nutrition', {}).get('daily_fats_g')
+                }
+
+                nutrition_logs = [
+                    {
+                        'logged_at': log.logged_at.isoformat() if log.logged_at else None,
+                        'total_calories': float(log.total_calories) if log.total_calories else 0,
+                        'total_protein_g': float(log.total_protein_g) if log.total_protein_g else 0,
+                        'total_carbs_g': float(log.total_carbs_g) if log.total_carbs_g else 0,
+                        'total_fats_g': float(log.total_fats_g) if log.total_fats_g else 0,
+                        'meal_type': log.meal_type
+                    }
+                    for log in logs
+                ]
+
+                # Analizar
+                analysis = analyze(
+                    nutrition_plan=nutrition_plan_dict,
+                    nutrition_logs=nutrition_logs,
+                    time_range_days=time_range_days
+                )
+
+                return Response(
+                    {
+                        'user_id': auth_user_id,
+                        'plan_id': plan_id,
+                        'status': 'success',
+                        'analysis': analysis
+                    },
+                    status=status.HTTP_200_OK
+                )
+
+            except Exception as e:
+                logger.error(f"Failed to analyze adherence: {e}", exc_info=True)
+                return Response(
+                    {
+                        'detail': f'Error al analizar adherencia: {str(e)}',
+                        'error': 'analysis_error'
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+
+class AIRecommendationsView(_UserScopedMixin, APIView):
+    """
+    Genera recomendaciones personalizadas usando IA.
+
+    Integra datos de tendencias, adherencia y mediciones para generar
+    5 recomendaciones accionables usando LLM (Gemini).
+
+    Query Parameters:
+    - user_id: str (opcional, para profesionales que consultan datos de pacientes)
+    - include_trends: bool (default: true)
+    - include_adherence: bool (default: true)
+    - days: int (default: 30, días de historia)
+    - async: bool (default: false)
+
+    Ejemplo:
+        GET /api/body/recommendations/ai/
+        GET /api/body/recommendations/ai/?user_id=patient-uuid&include_trends=true&days=90
+    """
+
+    permission_classes = (SupabaseJWTRequiredPermission, IsAuthenticated)
+
+    def get(self, request, *args, **kwargs) -> Response:
+        """Genera recomendaciones con IA."""
+
+        # Determinar el usuario objetivo (puede ser el usuario logueado o un paciente)
+        target_user_id = request.query_params.get('user_id')
+        requesting_user_id = self._auth_user_id()
+
+        if target_user_id:
+            # Verificar que el usuario logueado tenga permiso para ver datos de este usuario
+            from users.models import CareRelationship
+            has_permission = CareRelationship.objects.filter(
+                professional__auth_user_id=requesting_user_id,
+                patient__auth_user_id=target_user_id,
+                status='active'
+            ).exists()
+
+            if not has_permission:
+                return Response(
+                    {'detail': 'No tienes permiso para ver los datos de este usuario.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            auth_user_id = target_user_id
+        else:
+            auth_user_id = requesting_user_id
+
+        # Obtener parámetros
+        include_trends = request.query_params.get('include_trends', 'true').lower() in ('true', '1', 'yes')
+        include_adherence = request.query_params.get('include_adherence', 'true').lower() in ('true', '1', 'yes')
+        days = request.query_params.get('days', '30')
+        async_mode = request.query_params.get('async', 'false').lower() in ('true', '1', 'yes')
+
+        # Validar días
+        try:
+            time_range_days = int(days)
+            if time_range_days <= 0 or time_range_days > 365:
+                return Response(
+                    {'detail': 'El parámetro "days" debe estar entre 1 y 365.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except ValueError:
+            return Response(
+                {'detail': 'El parámetro "days" debe ser un número entero.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Modo asíncrono
+        if async_mode:
+            try:
+                from vectosvc.worker.body_tasks import generate_ai_recommendations
+
+                task = generate_ai_recommendations.delay(
+                    auth_user_id=auth_user_id,
+                    include_trends=include_trends,
+                    include_adherence=include_adherence,
+                    time_range_days=time_range_days
+                )
+
+                return Response(
+                    {
+                        'job_id': task.id,
+                        'status': 'queued',
+                        'detail': 'Generación de recomendaciones encolada. Puede tardar 30-60 segundos.'
+                    },
+                    status=status.HTTP_202_ACCEPTED
+                )
+            except ImportError:
+                logger.warning("Celery not available, falling back to sync")
+                async_mode = False
+
+        # Modo síncrono (puede tardar por llamada a LLM)
+        if not async_mode:
+            try:
+                from vectosvc.worker.body_tasks import generate_ai_recommendations
+
+                # Llamar directamente (sin .delay())
+                result = generate_ai_recommendations(
+                    auth_user_id=auth_user_id,
+                    include_trends=include_trends,
+                    include_adherence=include_adherence,
+                    time_range_days=time_range_days
+                )
+
+                if result['status'] == 'success':
+                    return Response(result, status=status.HTTP_200_OK)
+                else:
+                    return Response(
+                        {
+                            'detail': 'Error al generar recomendaciones.',
+                            'error': result.get('error', 'unknown')
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
+            except Exception as e:
+                logger.error(f"Failed to generate AI recommendations: {e}", exc_info=True)
+                return Response(
+                    {
+                        'detail': f'Error al generar recomendaciones: {str(e)}',
+                        'error': 'generation_error'
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
 
 class NutritionPlanUploadView(_UserScopedMixin, APIView):

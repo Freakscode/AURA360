@@ -1,0 +1,21 @@
+{{- if .Values.redis.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- $component := dict "component" "redis" "Chart" .Chart "Release" .Release "Values" .Values }}
+    {{- include "aura360.componentLabels" $component | nindent 4 }}
+spec:
+  type: {{ .Values.redis.service.type }}
+  ports:
+  - name: redis
+    port: {{ .Values.redis.service.port }}
+    targetPort: redis
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "aura360.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: redis
+{{- end }}

@@ -1,0 +1,300 @@
+# Default values for aura360
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  domain: aura360.local
+  environment: development
+  imagePullSecrets: []
+  storageClass: azurefile-premium
+
+# Shared image tag for all first-party services
+imageTag: "v2025.11.17"
+
+# Storage provisioning
+storage:
+  createCustomClasses: false
+
+# Namespace
+namespace: aura360
+namespaceCreate: false
+
+# Azure Container Registry
+imageRegistry: aura360prodacr.azurecr.io
+
+# Infrastructure Components
+qdrant:
+  enabled: true
+  image:
+    repository: qdrant/qdrant
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: azurefile-premium
+  service:
+    type: ClusterIP
+    restPort: 6333
+    grpcPort: 6334
+
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: azurefile-premium
+  service:
+    type: ClusterIP
+    port: 6379
+
+grobid:
+  enabled: true
+  image:
+    repository: lfoppiano/grobid
+    tag: 0.7.2
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  service:
+    type: ClusterIP
+    port: 8070
+  env:
+    GROBID_OPTS: "--max-connection=10 --max-threads=10"
+
+# Application Components
+api:
+  enabled: true
+  image:
+    repository: aura360-api
+    tag: ""
+    pullPolicy: Always
+  replicas: 2
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  service:
+    type: ClusterIP
+    port: 8000
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+  env:
+    PORT: "8000"
+    DJANGO_SETTINGS_MODULE: "config.settings"
+    WEB_CONCURRENCY: "2"
+  # Supabase configuration (from secrets)
+  supabase:
+    urlSecretName: supabase-credentials
+    urlSecretKey: url
+    serviceRoleKeySecretName: supabase-credentials
+    serviceRoleKeySecretKey: service_role_key
+    jwtSecretName: supabase-credentials
+    jwtSecretKey: jwt_secret
+  database:
+    secretName: database-credentials
+    hostKey: host
+    portKey: port
+    nameKey: name
+    userKey: user
+    passwordKey: password
+    engineKey: engine
+
+agents:
+  enabled: true
+  image:
+    repository: aura360-agents
+    tag: ""
+    pullPolicy: Always
+  replicas: 2
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  service:
+    type: ClusterIP
+    port: 8080
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+  env:
+    PORT: "8080"
+    WEB_CONCURRENCY: "2"
+    AGENT_SERVICE_QDRANT_URL: "http://qdrant:6333"
+    AGENT_SERVICE_VECTOR_COLLECTION: "holistic_agents"
+  # Google API Key (from secret)
+  googleApiKeySecretName: google-api-credentials
+  googleApiKeySecretKey: api_key
+
+vectordbApi:
+  enabled: true
+  image:
+    repository: aura360-vectordb-api
+    tag: ""
+    pullPolicy: Always
+  replicas: 2
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  service:
+    type: ClusterIP
+    port: 8001
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+  env:
+    PORT: "8000"
+    WEB_CONCURRENCY: "2"
+    QDRANT_URL: "http://qdrant:6333"
+    QDRANT_GRPC: "qdrant:6334"
+    BROKER_URL: "redis://redis:6379/0"
+    RESULT_BACKEND: "redis://redis:6379/1"
+    GROBID_URL: "http://grobid:8070"
+    DEFAULT_EMBEDDING_MODEL: "text-embedding-3-small"
+    EMBEDDING_VERSION: "2025.10.27"
+    EMBEDDING_DIM: "384"
+    VECTOR_DISTANCE: "cosine"
+    VECTOR_COLLECTION_NAME: "holistic_memory"
+
+vectordbWorker:
+  enabled: true
+  image:
+    repository: aura360-vectordb-worker
+    tag: ""
+    pullPolicy: Always
+  replicas: 2
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+  env:
+    CELERY_CONCURRENCY: "2"
+    QDRANT_URL: "http://qdrant:6333"
+    QDRANT_GRPC: "qdrant:6334"
+    BROKER_URL: "redis://redis:6379/0"
+    RESULT_BACKEND: "redis://redis:6379/1"
+    GROBID_URL: "http://grobid:8070"
+    DEFAULT_EMBEDDING_MODEL: "text-embedding-3-small"
+    EMBEDDING_VERSION: "2025.10.27"
+    EMBEDDING_DIM: "384"
+    VECTOR_DISTANCE: "cosine"
+    VECTOR_COLLECTION_NAME: "holistic_memory"
+
+web:
+  enabled: true
+  image:
+    repository: aura360-web
+    tag: ""
+    pullPolicy: Always
+  replicas: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  service:
+    type: ClusterIP
+    port: 4200
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+  env:
+    NODE_ENV: "production"
+    PORT: "4200"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: aura360.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: web
+          port: 4200
+    - host: api.aura360.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api
+          port: 8000
+    - host: agents.aura360.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: agents
+          port: 8080
+    - host: vectordb.aura360.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: vectordb-api
+          port: 8001
+  tls:
+    - secretName: aura360-tls
+      hosts:
+        - aura360.local
+        - api.aura360.local
+        - agents.aura360.local
+        - vectordb.aura360.local

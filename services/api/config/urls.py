@@ -34,13 +34,12 @@ urlpatterns = [
     # Panel de administración de Django
     path('admin/', admin.site.urls),
     
-    # API REST - Dashboard endpoints
-    # Todos los endpoints de la API están bajo /dashboard/
-    # según la preferencia del usuario
-    path('dashboard/', include(('users.urls', 'users'), namespace='users')),
-    path('dashboard/', include('body.urls')),
+    # API REST
+    path('api/', include(('users.urls', 'users'), namespace='users')),
+    path('api/', include('body.urls')),
     path('api/holistic/', include(('holistic.urls', 'holistic'), namespace='holistic')),
     path('api/v1/holistic/advice', HolisticAdviceView.as_view(), name='holistic-advice-v1'),
+    path('api/', include('papers.urls')),
     
     # Autenticación de DRF (para desarrollo y testing)
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),

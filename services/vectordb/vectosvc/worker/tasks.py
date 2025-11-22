@@ -424,3 +424,13 @@ def nutrition_plan_ingest_task(self, req_dict):
         if attempt >= self.max_retries + 1:
             _push_to_dlq(job_id, req_dict, exc, attempt, first_attempt_at, "unknown")
         raise
+
+
+# ============================================================================
+# BODY MEASUREMENT TASKS (Fase 1)
+# ============================================================================
+# Import body measurement tasks to register them with Celery
+from vectosvc.worker.body_tasks import (  # noqa: F401, E402
+    calculate_body_composition,
+    vectorize_body_measurement,
+)

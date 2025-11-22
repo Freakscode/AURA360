@@ -36,8 +36,9 @@ services:
       - redis
       - grobid
     environment:
-      - QDRANT_URL=http://qdrant:6333
-      - QDRANT_GRPC=qdrant:6334
+      - QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - QDRANT_GRPC=${QDRANT_GRPC}
       - BROKER_URL=redis://redis:6379/0
       - RESULT_BACKEND=redis://redis:6379/1
       - DEFAULT_EMBEDDING_MODEL=${DEFAULT_EMBEDDING_MODEL:-text-embedding-3-small}
@@ -46,12 +47,15 @@ services:
       - VECTOR_DISTANCE=cosine
       - VECTOR_COLLECTION_NAME=${VECTOR_COLLECTION_NAME:-holistic_memory}
       - GROBID_URL=http://grobid:8070
-      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
-      - GCS_PROJECT=${GCS_PROJECT:-}
+      # Autenticación GCP moderna (ADC)
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/adc.json
+      - GOOGLE_CLOUD_PROJECT=${GCS_PROJECT:-aura-360-471711}
+      - GCS_PROJECT=${GCS_PROJECT:-aura-360-471711}
       # Opcional: si el bucket es requester-pays
       # - GCS_USER_PROJECT=${GCS_USER_PROJECT}
     volumes:
-      - ${HOME}/.config/gcloud:/gcloud:ro
+      # Montar solo ADC credentials (método moderno, más seguro)
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/tmp/adc.json:ro
       - .:/app:ro
     working_dir: /app
     command: ["uvicorn", "vectosvc.api.http:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
@@ -68,8 +72,9 @@ services:
       - redis
       - grobid
     environment:
-      - QDRANT_URL=http://qdrant:6333
-      - QDRANT_GRPC=qdrant:6334
+      - QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - QDRANT_GRPC=${QDRANT_GRPC}
       - BROKER_URL=redis://redis:6379/0
       - RESULT_BACKEND=redis://redis:6379/1
       - DEFAULT_EMBEDDING_MODEL=${DEFAULT_EMBEDDING_MODEL:-text-embedding-3-small}
@@ -78,19 +83,28 @@ services:
       - VECTOR_DISTANCE=cosine
       - VECTOR_COLLECTION_NAME=${VECTOR_COLLECTION_NAME:-holistic_memory}
       - GROBID_URL=http://grobid:8070
-      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
-      - GCS_PROJECT=${GCS_PROJECT:-}
+      # Autenticación GCP moderna (ADC)
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/adc.json
+      - GOOGLE_CLOUD_PROJECT=${GCS_PROJECT:-aura-360-471711}
+      - GCS_PROJECT=${GCS_PROJECT:-aura-360-471711}
       # Opcional: requester-pays
       # - GCS_USER_PROJECT=${GCS_USER_PROJECT}
+      # AWS credentials
+      - AWS_SHARED_CREDENTIALS_FILE=/root/.aws/credentials
+      - AWS_CONFIG_FILE=/root/.aws/config
     volumes:
-      - ${HOME}/.config/gcloud:/gcloud:ro
+      # Montar solo ADC credentials (método moderno, más seguro)
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/tmp/adc.json:ro
+      # AWS credentials
+      - ${HOME}/.aws:/root/.aws:ro
       - .:/app:ro
     working_dir: /app
     command: ["celery", "-A", "vectosvc.worker.tasks.celery", "worker", "--loglevel=info", "--concurrency=2"]
 
   vectordb-consumer:
     build:
-      context: .
+      context: ..
+      dockerfile: vectordb/Dockerfile
       args:
         EXTRAS: "gcs"
     depends_on:
@@ -100,8 +114,9 @@ services:
     environment:
       - MESSAGING_BACKEND=${MESSAGING_BACKEND:-kafka}
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
-      - QDRANT_URL=http://qdrant:6333
-      - QDRANT_GRPC=qdrant:6334
+      - QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - QDRANT_GRPC=${QDRANT_GRPC}
       - BROKER_URL=redis://redis:6379/0
       - RESULT_BACKEND=redis://redis:6379/1
       - DEFAULT_EMBEDDING_MODEL=${DEFAULT_EMBEDDING_MODEL:-text-embedding-3-small}
@@ -110,10 +125,13 @@ services:
       - VECTOR_DISTANCE=cosine
       - VECTOR_COLLECTION_NAME=${VECTOR_COLLECTION_NAME:-holistic_memory}
       - GROBID_URL=http://grobid:8070
-      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
-      - GCS_PROJECT=${GCS_PROJECT:-}
+      # Autenticación GCP moderna (ADC)
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/adc.json
+      - GOOGLE_CLOUD_PROJECT=${GCS_PROJECT:-aura-360-471711}
+      - GCS_PROJECT=${GCS_PROJECT:-aura-360-471711}
     volumes:
-      - ${HOME}/.config/gcloud:/gcloud:ro
+      # Montar solo ADC credentials (método moderno, más seguro)
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/tmp/adc.json:ro
       - .:/app:ro
     working_dir: /app
     command: ["python", "-m", "vectosvc.kafka.consumer"]

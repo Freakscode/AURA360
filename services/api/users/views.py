@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from .models import AppUser, GlobalRole, UserTier, UsageLedger
+from .models import AppUser, GlobalRole, UserTier, UsageLedger, CareRelationship, CareRelationshipContext
 from .serializers import (
     AppUserSerializer,
     AppUserListSerializer,
@@ -212,6 +212,115 @@ class AppUserViewSet(viewsets.ModelViewSet):
         
         serializer = AppUserListSerializer(premium_users, many=True)
         return Response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='invite-patient',
+        permission_classes=[SupabaseJWTRequiredPermission],
+    )
+    def invite_patient(self, request):
+        """
+        Crea un nuevo paciente y establece una relación de cuidado con el profesional actual.
+        
+        POST /dashboard/users/invite-patient/
+        Body: { "email": "...", "full_name": "...", "phone_number": "..." }
+        """
+        # 1. Identificar al profesional (usuario actual)
+        try:
+            professional_uuid = request.user.id
+            professional = AppUser.objects.get(auth_user_id=professional_uuid)
+        except AppUser.DoesNotExist:
+            return Response(
+                {'error': 'Perfil de profesional no encontrado.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Validar que sea profesional (opcional, según reglas de negocio)
+        # if professional.global_role != GlobalRole.PROFESIONAL_SALUD: ...
+
+        # 2. Preparar payload para provisión
+        email = request.data.get('email')
+        full_name = request.data.get('full_name')
+        phone = request.data.get('phone_number')
+        
+        if not email:
+            return Response({'error': 'El email es requerido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Datos para crear el usuario
+        provision_data = {
+            "email": email,
+            "password": uuid.uuid4().hex[:12], # Contraseña temporal aleatoria
+            "email_confirm": True, # Auto-confirmar para evitar fricción en demo
+            "user_metadata": {
+                "full_name": full_name,
+                "phone_number": phone,
+                "role_global": "Paciente", # Forzar rol Paciente
+                "tier": "free",
+                "billing_plan": "individual"
+            }
+        }
+
+        # 3. Reutilizar lógica de provisión
+        # Instanciamos el serializer para validar
+        serializer = SupabaseAdminUserCreateSerializer(data=provision_data)
+        serializer.is_valid(raise_exception=True)
+        
+        try:
+            # Llamamos a la lógica de provisión interna (copiada de provision action)
+            client = get_supabase_admin_client()
+            payload = serializer.validated_data
+            metadata = payload['user_metadata']
+            
+            # Verificar si ya existe en Supabase
+            # Nota: create_user lanzará error si existe.
+            # Podríamos intentar get_user_by_email primero si queremos manejar "Asociar existente".
+            
+            try:
+                supabase_payload = client.create_user(
+                    email=payload['email'],
+                    password=payload['password'],
+                    email_confirm=payload['email_confirm'],
+                    user_metadata=metadata,
+                )
+                auth_user_id = supabase_payload.get('user', supabase_payload).get('id')
+                
+                # Sincronizar AppUser
+                patient = self._sync_app_user(
+                    auth_user_id=auth_user_id,
+                    email=payload['email'],
+                    metadata=metadata,
+                )
+                
+            except SupabaseAdminError as e:
+                if "User already registered" in str(e):
+                    # El usuario ya existe, buscamos su AppUser
+                    # TODO: Implementar búsqueda por email en AppUser
+                    # Por ahora asumimos que si existe en Auth, existe en AppUser o lo sincronizamos
+                    # Necesitamos el ID de auth.
+                    users = client.list_users() # Ineficiente, pero admin client no tiene get_by_email fácil en algunas versiones
+                    # Mejor: Asumir que falla y pedir al usuario que use "Asociar Paciente Existente"
+                    return Response(
+                        {'error': 'El usuario ya está registrado. Use la función de búsqueda para asociarlo.'},
+                        status=status.HTTP_409_CONFLICT
+                    )
+                raise e
+
+            # 4. Crear Relación de Cuidado
+            CareRelationship.objects.create(
+                professional_user=professional,
+                patient_user=patient,
+                context_type=CareRelationshipContext.INDEPENDENT,
+                status='active'
+            )
+
+            return Response({
+                'message': 'Paciente creado y asociado exitosamente.',
+                'patient': AppUserSerializer(patient).data
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'], url_path='roles')
     def roles_summary(self, request):

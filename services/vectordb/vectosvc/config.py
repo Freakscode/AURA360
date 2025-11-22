@@ -46,11 +46,11 @@ class Settings(BaseSettings):
     vector_distance: str = Field(default="cosine", alias="VECTOR_DISTANCE")
 
     embedding_model: str = Field(
-        default="text-embedding-3-small",
+        default="gemini-embedding-001",
         alias="DEFAULT_EMBEDDING_MODEL",
         description="Modelo de embeddings utilizado para consultas e ingesta.",
     )
-    embedding_dim: int = Field(default=384, alias="EMBEDDING_DIM")
+    embedding_dim: int = Field(default=768, alias="EMBEDDING_DIM")
     embedding_version: str = Field(default="2025.10.27", alias="EMBEDDING_VERSION")
 
     vector_query_timeout: int = Field(default=8, alias="VECTOR_QUERY_TIMEOUT")

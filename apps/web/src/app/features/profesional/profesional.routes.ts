@@ -21,4 +21,33 @@ export const profesionalRoutes: Routes = [
       ),
     data: { prerender: false },
   },
+  {
+    path: 'consultas',
+    loadComponent: () =>
+      import('./pages/consultas/consultas.component').then((m) => m.ConsultasComponent),
+  },
+  {
+    path: 'historial',
+    loadComponent: () =>
+      import('./pages/historial/historial.component').then((m) => m.HistorialComponent),
+  },
+  {
+    path: 'mensajes',
+    loadComponent: () =>
+      import('./pages/mensajes/mensajes.component').then((m) => m.MensajesComponent),
+  },
+  {
+    path: 'herramientas/planificador',
+    loadComponent: () =>
+      import('./pages/nutrition-tools/meal-planner/meal-planner.component').then(
+        (m) => m.MealPlannerComponent
+      ),
+  },
+  {
+    path: 'herramientas/antropometria',
+    loadComponent: () =>
+      import('./pages/nutrition-tools/anthropometry/anthropometry.component').then(
+        (m) => m.AnthropometryComponent
+      ),
+  },
 ];

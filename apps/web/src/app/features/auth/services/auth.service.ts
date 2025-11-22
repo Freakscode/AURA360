@@ -311,10 +311,17 @@ export class AuthService {
     }
 
     try {
-      // Intentar obtener sesión de Supabase (que maneja su propio storage)
-      const session = await this.getSession();
+      // 1. Intentar obtener sesión de Supabase (localStorage)
+      let session = await this.getSession();
+
+      // 2. Fallback: Intentar recuperar backup manual (sessionStorage)
+      if (!session) {
+        console.log('[AuthService] No session in Supabase storage, trying backup...');
+        session = await this.restoreFromBackup();
+      }
       
       if (session) {
+        console.log('[AuthService] Session restored successfully');
         // Actualizar store con sesión restaurada
         this.authSessionStore.setSession(session, session.user);
 
@@ -339,6 +346,38 @@ export class AuthService {
   }
 
   // Métodos privados
+
+  /**
+   * Intenta restaurar la sesión desde el backup manual en sessionStorage
+   */
+  private async restoreFromBackup(): Promise<Session | null> {
+    try {
+      const backup = sessionStorage.getItem('aura_session');
+      if (!backup) return null;
+
+      const data = JSON.parse(backup);
+      if (!data.refresh_token) return null;
+
+      console.log('[AuthService] Found backup session, attempting refresh...');
+      const client = await this.supabaseClient.getClient();
+      
+      // Intentar refrescar sesión usando el refresh token guardado
+      const { data: refreshData, error } = await client.auth.refreshSession({ 
+        refresh_token: data.refresh_token 
+      });
+
+      if (error || !refreshData.session) {
+        console.warn('[AuthService] Failed to restore backup session:', error);
+        this.clearPersistedSession(); // Limpiar backup corrupto/expirado
+        return null;
+      }
+
+      return refreshData.session;
+    } catch (e) {
+      console.error('[AuthService] Error reading backup session:', e);
+      return null;
+    }
+  }
 
   /**
    * Inicializa el listener de cambios de estado de autenticación

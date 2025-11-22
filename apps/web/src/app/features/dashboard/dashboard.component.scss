@@ -1,0 +1,185 @@
+@use '@angular/material' as mat;
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+.welcome-section {
+  margin-bottom: 8px;
+  
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+    color: #1e293b; // slate-800
+    
+    span {
+      color: #ac4fc6; // Primary brand color
+    }
+  }
+  
+  p {
+    color: #64748b; // slate-500
+    margin-top: 4px;
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 24px;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  height: 100%;
+  
+  mat-card-header {
+    margin-bottom: 16px;
+  }
+  
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+    color: #0f172a; // slate-900
+  }
+  
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    
+    &.positive {
+      color: #10b981; // emerald-500
+    }
+    
+    &.negative {
+      color: #ef4444; // red-500
+    }
+    
+    mat-icon {
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+    }
+  }
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  
+  @media (min-width: 1024px) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.activity-list {
+  .activity-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 0;
+    border-bottom: 1px solid #e2e8f0;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .activity-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #f1f5f9;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      
+      &.mind { background-color: #f5dffb; color: #ac4fc6; }
+      &.body { background-color: #ccfbf6; color: #0d9488; }
+      &.soul { background-color: #fef3c7; color: #d97706; }
+    }
+    
+    .activity-content {
+      flex: 1;
+      
+      .activity-title {
+        font-weight: 500;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+      
+      .activity-time {
+        font-size: 0.8rem;
+        color: #94a3b8;
+      }
+    }
+  }
+}
+
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  button {
+    justify-content: flex-start;
+    height: 48px;
+    
+    mat-icon {
+      margin-right: 12px;
+    }
+  }
+}
+
+.wellness-score-card {
+  background: linear-gradient(135deg, #ac4fc6 0%, #71dbd4 100%);
+  color: white;
+  
+  mat-card-title, mat-card-subtitle {
+    color: white;
+  }
+  
+  mat-card-subtitle {
+    opacity: 0.9;
+  }
+  
+  .score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 8px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 24px auto;
+    font-size: 2.5rem;
+    font-weight: 800;
+    background-color: rgba(255,255,255,0.1);
+  }
+}

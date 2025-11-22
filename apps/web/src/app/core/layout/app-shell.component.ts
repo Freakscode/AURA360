@@ -1,6 +1,16 @@
-import { Component, computed, signal, inject } from '@angular/core';
+import { Component, computed, signal, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRippleModule } from '@angular/material/core';
+
 import { AuthSessionStore } from '../../features/auth/services/auth-session.store';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { NavigationMenuService } from '../services/navigation-menu.service';
@@ -18,6 +28,15 @@ import { INSTITUTION_ROLE_LABELS } from '../models/institution-role.enum';
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
+    MatSidenavModule,
+    MatToolbarModule,
+    MatListModule,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatBadgeModule,
+    MatTooltipModule,
+    MatRippleModule,
     ContextSwitcherComponent,
   ],
   templateUrl: './app-shell.component.html',
@@ -34,14 +53,17 @@ export class AppShellComponent {
   private readonly permissionService = inject(PermissionService);
   private readonly router = inject(Router);
 
+  // ViewChild to control sidenav programmatically if needed (e.g. on mobile navigation)
+  // protected readonly sidenav = viewChild<MatSidenav>('sidenav');
+
   constructor() {
     console.debug('[AppShell] init');
   }
 
   // UI State
+  // SideNav open state: start open on desktop, closed on mobile (responsive logic can be added via BreakpointObserver)
   protected readonly isSideNavOpen = signal(true);
   protected readonly notificationsCount = signal(3);
-  protected readonly isUserMenuOpen = signal(false);
 
   // Auth Data
   readonly user = this.authSessionStore.user;
@@ -63,7 +85,7 @@ export class AppShellComponent {
     const context = this.activeContext();
     if (!context) return 'Sin rol';
 
-    // Priorizar rol institucional si existe
+    // Prioritize institutional role if exists
     if (context.institutionRole) {
       return INSTITUTION_ROLE_LABELS[context.institutionRole];
     }
@@ -89,21 +111,15 @@ export class AppShellComponent {
     this.isSideNavOpen.update((open) => !open);
   }
 
-  toggleUserMenu(): void {
-    this.isUserMenuOpen.update((open) => !open);
-  }
-
   async logout(): Promise<void> {
     await this.authService.logout();
   }
 
   navigateToProfile(): void {
-    this.isUserMenuOpen.set(false);
     this.router.navigate(['/profile']);
   }
 
   navigateToSettings(): void {
-    this.isUserMenuOpen.set(false);
     this.router.navigate(['/settings']);
   }
 }

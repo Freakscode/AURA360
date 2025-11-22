@@ -1,0 +1,80 @@
+{
+  "papers": [
+    {
+      "doc_id": "sleep_circadian_2023_001",
+      "filename": "sleep_circadian_health_walker2023.pdf",
+      "category": "mente",
+      "topics": ["sleep_health", "circadian_rhythm", "cognitive_function"],
+      "confidence_score": 0.94,
+      "title": "Sleep and Circadian Rhythms in Health and Disease",
+      "authors": ["Walker M.", "Smith J.", "Johnson L."],
+      "journal": "Nature Reviews Neuroscience",
+      "year": 2023,
+      "doi": "10.1038/nrn.2023.001",
+      "abstract": "Sleep and circadian rhythms are fundamental biological processes that regulate numerous physiological and cognitive functions...",
+      "tags": ["recent", "high-impact"],
+      "mesh_terms": ["Sleep", "Circadian Rhythm", "Cognition", "Neuroscience"]
+    },
+    {
+      "doc_id": "obesity_metabolic_2023_002",
+      "filename": "obesity_metabolic_syndrome_garcia2023.pdf",
+      "category": "cuerpo",
+      "topics": ["obesity", "metabolic_syndrome", "insulin_signaling"],
+      "confidence_score": 0.92,
+      "title": "Metabolic Syndrome and Obesity: Mechanisms and Interventions",
+      "authors": ["Garcia R.", "Martinez A."],
+      "journal": "The Lancet Diabetes & Endocrinology",
+      "year": 2023,
+      "doi": "10.1016/S2213-8587(23)00100-X",
+      "abstract": "Obesity and metabolic syndrome represent major public health challenges globally...",
+      "tags": ["clinical", "systematic-review"],
+      "mesh_terms": ["Obesity", "Metabolic Syndrome", "Insulin Resistance"]
+    },
+    {
+      "doc_id": "mindfulness_meditation_2022_003",
+      "filename": "mindfulness_mental_health_chen2022.pdf",
+      "category": "alma",
+      "topics": ["mental_health", "stress_response", "neuroplasticity"],
+      "confidence_score": 0.88,
+      "title": "Mindfulness Meditation and Mental Health: A Meta-Analysis",
+      "authors": ["Chen L.", "Wang Y.", "Zhang Q."],
+      "journal": "JAMA Psychiatry",
+      "year": 2022,
+      "doi": "10.1001/jamapsychiatry.2022.1234",
+      "abstract": "Mindfulness-based interventions have shown promise for improving mental health outcomes...",
+      "tags": ["meta-analysis", "evidence-based"],
+      "mesh_terms": ["Mindfulness", "Meditation", "Mental Health", "Depression", "Anxiety"]
+    },
+    {
+      "doc_id": "gut_microbiome_2023_004",
+      "filename": "gut_brain_axis_microbiome2023.pdf",
+      "category": "cuerpo",
+      "topics": ["gut_microbiome", "gut_brain_axis", "neuroinflammation"],
+      "confidence_score": 0.91,
+      "title": "The Gut-Brain Axis: Microbiome Influences on Mental Health",
+      "authors": ["Brown K.", "Lee S.", "Patel N."],
+      "journal": "Nature Microbiology",
+      "year": 2023,
+      "doi": "10.1038/s41564-023-1234-5",
+      "abstract": "The gut microbiome plays a crucial role in bidirectional communication with the central nervous system...",
+      "url": "https://www.nature.com/articles/s41564-023-1234-5",
+      "tags": ["emerging", "gut-brain"],
+      "mesh_terms": ["Gut Microbiome", "Brain-Gut Axis", "Neuroinflammation", "Mental Health"]
+    },
+    {
+      "doc_id": "exercise_longevity_2023_005",
+      "filename": "exercise_physiology_aging2023.pdf",
+      "category": "cuerpo",
+      "topics": ["exercise_physiology", "longevity", "mitochondrial_function"],
+      "confidence_score": 0.95,
+      "title": "Exercise and Longevity: Molecular Mechanisms of Healthspan Extension",
+      "authors": ["Thompson D.", "Rodriguez M.", "Kim H."],
+      "journal": "Cell Metabolism",
+      "year": 2023,
+      "doi": "10.1016/j.cmet.2023.05.001",
+      "abstract": "Regular physical activity is one of the most potent interventions for extending healthspan and lifespan...",
+      "tags": ["longevity", "molecular"],
+      "mesh_terms": ["Exercise", "Aging", "Longevity", "Mitochondria", "Healthspan"]
+    }
+  ]
+}

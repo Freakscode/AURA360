@@ -3,7 +3,7 @@ name = "vectosvc"
 version = "0.1.0"
 description = "Vector DB service (Qdrant + FastAPI + Celery)"
 authors = [{name = "AURA365", email = "dev@example.com"}]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 dependencies = [
   "fastapi>=0.110",
@@ -23,6 +23,7 @@ dependencies = [
   "langdetect>=1.0.9",
   "pyyaml>=6.0",
   "google-cloud-storage>=3.4.0",
+  "boto3>=1.34",
   "pytest>=8.4.2",
   "confluent-kafka>=2.3.0",
 ]

@@ -25,7 +25,8 @@ import { Aura360Environment } from './environment.model';
  */
 export const environment: Aura360Environment = {
   production: true,
-  apiBaseUrl: 'https://api.aura360.local/api',
+  apiBaseUrl: 'http://localhost:8000/api',
+  apiUrl: 'http://localhost:8000/api',
   supabase: {
     // TODO: Reemplazar con tu URL de Supabase de producción
     url: 'http://127.0.0.1:54321',

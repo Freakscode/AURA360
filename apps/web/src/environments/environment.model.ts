@@ -15,6 +15,11 @@ export interface Aura360Environment {
   readonly supabase: SupabaseSettings;
   /** Base URL for the Django API (e.g., https://api.example.com/api). */
   readonly apiBaseUrl: string;
+  /**
+   * Deprecated alias kept for backward compatibility with legacy services.
+   * Prefer `apiBaseUrl` going forward.
+   */
+  readonly apiUrl?: string;
 }
 
 /**

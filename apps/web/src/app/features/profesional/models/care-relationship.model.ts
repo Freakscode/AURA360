@@ -29,6 +29,7 @@ export interface CareRelationshipWithPatient extends CareRelationship {
  */
 export interface PatientInfo {
   id: number;
+  auth_user_id: string;
   email: string;
   full_name: string;
   age: number | null;

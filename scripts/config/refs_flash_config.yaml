@@ -1,0 +1,71 @@
+# Configuración para Papers de Referencias de Nutrición
+# Procesados por Gemini 2.5 Flash
+
+# ==============================================================================
+# PATHS LOCALES
+# ==============================================================================
+
+# Directorio donde están los PDFs organizados por tópico
+local_papers_dir: "/Users/freakscode/Proyectos/AURA360/tmp/output_refs_flash/papers"
+
+# Archivo JSON con la categorización convertida
+categorization_file: "/Users/freakscode/Proyectos/AURA360/tmp/output_refs_flash/categorization_pipeline.json"
+
+# ==============================================================================
+# CLOUD STORAGE
+# ==============================================================================
+
+# Provider de cloud storage
+cloud_provider: "s3"
+
+# Amazon S3 (usando credenciales de AWS CLI)
+s3_bucket: "aura360-papers-8569"
+s3_region: "us-east-1"
+
+# ==============================================================================
+# QDRANT
+# ==============================================================================
+
+# URL de Qdrant Cloud
+qdrant_url: "${QDRANT_URL}"
+qdrant_api_key: "${QDRANT_API_KEY}"
+qdrant_collection: "holistic_memory"
+
+# ==============================================================================
+# VECTOR DB SERVICE
+# ==============================================================================
+
+# URL del servicio vectordb (si está desplegado o local)
+vectordb_api_url: "http://localhost:8001"
+
+# ==============================================================================
+# VALIDACIÓN
+# ==============================================================================
+
+# Modo auto: aprobar automáticamente papers con alta confianza
+# Gemini 2.5 Flash ya hizo la categorización, así que confiamos en ella
+validation_mode: "auto"
+
+# Umbral alto porque Gemini ya categorizó
+auto_approve_threshold: 0.85
+
+# Batch size para procesamiento paralelo
+batch_size: 5
+
+# ==============================================================================
+# OPCIONES DE PIPELINE
+# ==============================================================================
+
+# No saltar ninguna fase (queremos el flujo completo)
+skip_upload: false
+skip_ingestion: false
+
+# Cambiar a false cuando estés listo para ejecutar realmente
+dry_run: false
+
+# ==============================================================================
+# LOGGING
+# ==============================================================================
+
+log_level: "INFO"
+log_file: null

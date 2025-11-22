@@ -203,6 +203,8 @@ kubectl delete namespace aura360
 | `global.domain` | Base domain for ingress | `aura360.local` |
 | `global.environment` | Environment label | `development` |
 | `global.storageClass` | Storage class for PVCs | `azurefile-premium` |
+| `namespaceCreate` | Whether Helm should create the namespace | `false` |
+| `storage.createCustomClasses` | Create azurefile/azurefile-premium storage classes | `false` |
 | `imageRegistry` | ACR registry URL | `aura360prodacr.azurecr.io` |
 | `api.replicas` | API pod replicas | `2` |
 | `qdrant.persistence.size` | Qdrant storage size | `10Gi` |

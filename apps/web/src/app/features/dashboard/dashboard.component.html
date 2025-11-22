@@ -1,0 +1,151 @@
+<div class="dashboard-container">
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <h1>Hola, <span>{{ userName() }}</span></h1>
+    <p>Aquí tienes el resumen de tu bienestar hoy.</p>
+  </div>
+
+  <!-- Key Stats Grid -->
+  <div class="stats-grid">
+    <!-- Wellness Score -->
+    <mat-card class="stat-card wellness-score-card">
+      <mat-card-header>
+        <mat-card-title>AURA Score</mat-card-title>
+        <mat-card-subtitle>Nivel General</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="score-circle">
+          87
+        </div>
+        <div class="text-center" style="text-align: center; font-weight: 500;">
+          ¡Excelente balance!
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Mind Stat -->
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <div mat-card-avatar class="example-header-image">
+          <mat-icon color="primary">psychology</mat-icon>
+        </div>
+        <mat-card-title>Mente</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-value">92%</div>
+        <div class="stat-trend positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+4% esta semana</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Body Stat -->
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <div mat-card-avatar>
+          <mat-icon style="color: #0d9488;">fitness_center</mat-icon>
+        </div>
+        <mat-card-title>Cuerpo</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-value">78%</div>
+        <div class="stat-trend negative">
+          <mat-icon>trending_down</mat-icon>
+          <span>-2% esta semana</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Soul Stat -->
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <div mat-card-avatar>
+          <mat-icon style="color: #d97706;">self_improvement</mat-icon>
+        </div>
+        <mat-card-title>Alma</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-value">85%</div>
+        <div class="stat-trend positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+12% esta semana</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="main-grid">
+    <!-- Left Column: Activity Feed -->
+    <div class="left-col">
+      <div class="section-title">
+        <span>Actividad Reciente</span>
+        <button mat-button color="primary">Ver todo</button>
+      </div>
+      
+      <mat-card>
+        <mat-card-content>
+          <div class="activity-list">
+            @for (activity of activities(); track activity.id) {
+              <div class="activity-item">
+                <div class="activity-icon" [ngClass]="activity.type">
+                  <mat-icon>{{ activity.icon }}</mat-icon>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">{{ activity.title }}</div>
+                  <div class="activity-time">{{ activity.time }}</div>
+                </div>
+                <div class="activity-action">
+                   <button mat-icon-button>
+                     <mat-icon>chevron_right</mat-icon>
+                   </button>
+                </div>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Right Column: Quick Actions & Upcoming -->
+    <div class="right-col">
+      <div class="section-title">Acciones Rápidas</div>
+      <mat-card class="mb-4" style="margin-bottom: 24px;">
+        <mat-card-content>
+          <div class="quick-actions">
+            <button mat-stroked-button color="primary">
+              <mat-icon>edit_calendar</mat-icon>
+              Agendar Consulta
+            </button>
+            <button mat-stroked-button>
+              <mat-icon>mood</mat-icon>
+              Registrar Estado de Ánimo
+            </button>
+            <button mat-stroked-button>
+              <mat-icon>restaurant</mat-icon>
+              Registrar Comida
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="section-title">Próxima Sesión</div>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Dra. Ana García</mat-card-title>
+          <mat-card-subtitle>Psicología Clínica</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="mt-2" style="margin-top: 16px;">
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+             <mat-icon style="font-size: 20px; color: #64748b;">calendar_today</mat-icon>
+             <span>Mañana, 10:00 AM</span>
+          </div>
+          <button mat-flat-button color="primary" style="width: 100%; margin-top: 8px;">
+            Unirse a videollamada
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

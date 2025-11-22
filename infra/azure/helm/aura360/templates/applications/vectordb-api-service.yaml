@@ -1,0 +1,21 @@
+{{- if .Values.vectordbApi.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: vectordb-api
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- $component := dict "component" "vectordb-api" "Chart" .Chart "Release" .Release "Values" .Values }}
+    {{- include "aura360.componentLabels" $component | nindent 4 }}
+spec:
+  type: {{ .Values.vectordbApi.service.type }}
+  ports:
+  - name: http
+    port: {{ .Values.vectordbApi.service.port }}
+    targetPort: http
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "aura360.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: vectordb-api
+{{- end }}

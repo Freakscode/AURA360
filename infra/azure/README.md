@@ -69,6 +69,97 @@ terraform apply -var-file=envs/prod.tfvars
 
 > 💡 Ajusta `prod.tfvars` para cada entorno (`stg`, `dev`).
 
+### Flujo rápido para entorno **dev**
+
+1. **Inicializa con un state separado** para evitar sobreescribir producción:
+
+   ```bash
+   terraform init \
+     -backend-config="resource_group_name=rg-tfstate-aura360" \
+     -backend-config="storage_account_name=sttfstateaura360" \
+     -backend-config="container_name=tfstate" \
+     -backend-config="key=aura360-dev.tfstate"
+   ```
+
+2. **Valida la sintaxis** (recomendado por HashiCorp antes de cualquier plan):
+
+   ```bash
+   terraform validate
+   ```
+
+3. **Genera el plan** usando el nuevo archivo `envs/dev.tfvars`:
+
+   ```bash
+   terraform plan -var-file=envs/dev.tfvars
+   ```
+
+4. **Aplica los cambios** cuando estés conforme con el plan:
+
+   ```bash
+   terraform apply -var-file=envs/dev.tfvars -auto-approve
+   ```
+
+5. Al finalizar, verifica los recursos desde el portal: https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Resources%2FresourceGroups (`aura360-dev-rg`).
+
+## 🚢 Despliegue de workloads (AKS dev)
+
+1. **Publica las imágenes en ACR** (usa la misma instancia `aura360prodacr` o define una específica para dev):
+
+   ```bash
+   az acr login --name aura360prodacr
+
+   export REGISTRY=aura360prodacr.azurecr.io
+   export TAG=v$(date +%Y%m%d)-dev
+
+   docker build -t ${REGISTRY}/aura360-api:${TAG} services/api
+   docker push ${REGISTRY}/aura360-api:${TAG}
+
+   docker build -t ${REGISTRY}/aura360-agents:${TAG} services/agents
+   docker push ${REGISTRY}/aura360-agents:${TAG}
+
+   docker build -t ${REGISTRY}/aura360-vectordb-api:${TAG} services/vectordb
+   docker push ${REGISTRY}/aura360-vectordb-api:${TAG}
+
+   docker build -t ${REGISTRY}/aura360-vectordb-worker:${TAG} services/vectordb
+   docker push ${REGISTRY}/aura360-vectordb-worker:${TAG}
+
+   docker build -t ${REGISTRY}/aura360-web:${TAG} apps/web
+   docker push ${REGISTRY}/aura360-web:${TAG}
+   ```
+
+   > Actualiza `infra/azure/helm/aura360/values-dev.yaml` con el tag utilizado si no quieres usar `latest`.
+
+2. **Conéctate al cluster dev** (automático si ejecutas los scripts, pero puedes hacerlo manualmente):
+
+   ```bash
+   az aks get-credentials --resource-group aura360-dev-rg --name aura360-dev-aks --overwrite-existing
+   kubectl config use-context aura360-dev-aks
+   ```
+
+3. **Configura los secrets** (Supabase + Google APIs) usando el nuevo argumento de entorno:
+
+   ```bash
+   cd infra/azure/helm
+   ./configure-secrets.sh dev
+   ```
+
+   El script intentará obtener credenciales de AKS automáticamente y luego te guiará para cargar valores reales.
+
+4. **Despliega la plataforma completa**:
+
+   ```bash
+   ./deploy.sh dev
+   ```
+
+   Puedes sobreescribir el resource group/cluster exportando `AKS_RESOURCE_GROUP`, `AKS_CLUSTER_NAME` o `DEFAULT_DOMAIN` antes de ejecutar el script.
+
+5. **Verifica**:
+   - `kubectl get pods -n aura360`
+   - `kubectl get ingress -n aura360`
+   - Accede vía `http://aura360-dev.eastus2.cloudapp.azure.com`
+
+6. **Actualiza `/etc/hosts`** o tu DNS si deseas nombres amigables. Los scripts ahora imprimen los dominios basados en el entorno.
+
 ## 🧪 Checklist previo al primer `apply`
 
 1. Ejecuta `az account show` para confirmar la suscripción activa `9a376aee-130b-4d76-8847-63877b872859`.

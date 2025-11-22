@@ -6,10 +6,83 @@ from rest_framework import serializers
 
 from .models import (
     BodyActivity,
+    BodyMeasurement,
     NutritionLog,
     NutritionPlan,
     SleepLog,
 )
+
+
+class BodyMeasurementSerializer(serializers.ModelSerializer):
+    """Serializa mediciones antropométricas y de composición corporal."""
+
+    class Meta:
+        model = BodyMeasurement
+        fields = (
+            'id',
+            'auth_user_id',
+            'recorded_at',
+            'protocol',
+            'patient_type',
+            
+            # Medidas Básicas
+            'weight_kg',
+            'height_cm',
+            'bmi',
+            
+            # Circunferencias
+            'waist_circumference_cm',
+            'hip_circumference_cm',
+            'arm_relaxed_circumference_cm',
+            'arm_flexed_circumference_cm',
+            'calf_circumference_cm',
+            'thigh_circumference_cm',
+            
+            # Pliegues
+            'triceps_skinfold_mm',
+            'biceps_skinfold_mm',
+            'subscapular_skinfold_mm',
+            'suprailiac_skinfold_mm',
+            'abdominal_skinfold_mm',
+            'thigh_skinfold_mm',
+            'calf_skinfold_mm',
+            
+            # Diámetros
+            'humerus_breadth_mm',
+            'femur_breadth_mm',
+            'wrist_breadth_mm',
+            
+            # Resultados Calculados
+            'body_fat_percentage',
+            'fat_mass_kg',
+            'muscle_mass_kg',
+            'muscle_mass_percentage',
+            'endomorphy',
+            'mesomorphy',
+            'ectomorphy',
+            'waist_hip_ratio',
+            'waist_height_ratio',
+            'visceral_fat_level',
+            
+            # Auditoría
+            'notes',
+            'measured_by',
+            'photos',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'id', 
+            'created_at', 
+            'updated_at',
+            # Los campos calculados pueden ser read-only si solo el backend los calcula
+            'bmi',
+            'endomorphy',
+            'mesomorphy',
+            'ectomorphy',
+            'waist_hip_ratio',
+            'waist_height_ratio',
+        )
 
 
 class BodyActivitySerializer(serializers.ModelSerializer):
@@ -127,6 +200,10 @@ class NutritionPlanSerializer(serializers.ModelSerializer):
         model = NutritionPlan
         fields = (
             'id',
+            'auth_user_id',
+            'created_by',
+            'is_template',
+            'description',
             'title',
             'language',
             'issued_at',

@@ -8,3 +8,13 @@ class BodyConfig(AppConfig):
     name = 'body'
     verbose_name = 'Bienestar Corporal'
 
+    def ready(self):
+        """
+        Importa signals cuando la aplicación inicia.
+
+        Esto registra los handlers de post_save para:
+        - BodyMeasurement → cálculos automáticos
+        - NutritionPlan → vectorización automática
+        """
+        import body.signals  # noqa: F401
+

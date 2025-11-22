@@ -1,0 +1,48 @@
+{{- if and .Values.storage.createCustomClasses .Values.qdrant.persistence.enabled }}
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azurefile
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "aura360.labels" . | nindent 4 }}
+provisioner: file.csi.azure.com
+parameters:
+  skuName: Standard_LRS
+  location: eastus2
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=0
+  - gid=0
+  - mfsymlinks
+  - cache=strict
+  - actimeo=30
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azurefile-premium
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "aura360.labels" . | nindent 4 }}
+provisioner: file.csi.azure.com
+parameters:
+  skuName: Premium_LRS
+  location: eastus2
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=0
+  - gid=0
+  - mfsymlinks
+  - cache=strict
+  - actimeo=30
+{{- end }}

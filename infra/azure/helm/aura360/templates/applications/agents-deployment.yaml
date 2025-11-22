@@ -1,0 +1,68 @@
+{{- if .Values.agents.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agents
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- $component := dict "component" "agents" "Chart" .Chart "Release" .Release "Values" .Values }}
+    {{- include "aura360.componentLabels" $component | nindent 4 }}
+spec:
+  {{- if not .Values.agents.autoscaling.enabled }}
+  replicas: {{ .Values.agents.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "aura360.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: agents
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "aura360.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: agents
+    spec:
+      containers:
+      - name: agents
+        image: {{ include "aura360.image" (dict "Values" .Values "repository" .Values.agents.image.repository "tag" .Values.agents.image.tag) }}
+        imagePullPolicy: {{ .Values.agents.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.agents.env.PORT }}
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "{{ .Values.agents.env.PORT }}"
+        - name: WEB_CONCURRENCY
+          value: "{{ .Values.agents.env.WEB_CONCURRENCY }}"
+        - name: AGENT_SERVICE_QDRANT_URL
+          value: "{{ .Values.agents.env.AGENT_SERVICE_QDRANT_URL }}"
+        - name: AGENT_SERVICE_VECTOR_COLLECTION
+          value: "{{ .Values.agents.env.AGENT_SERVICE_VECTOR_COLLECTION }}"
+        - name: VECTOR_SERVICE_URL
+          value: "{{ .Values.agents.env.AGENT_SERVICE_QDRANT_URL }}"
+        - name: VECTOR_SERVICE_COLLECTION_NAME
+          value: "{{ .Values.agents.env.AGENT_SERVICE_VECTOR_COLLECTION }}"
+        - name: HOLISTIC_VECTOR_COLLECTION_NAME
+          value: "{{ .Values.agents.env.AGENT_SERVICE_VECTOR_COLLECTION }}"
+        - name: GOOGLE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.agents.googleApiKeySecretName }}
+              key: {{ .Values.agents.googleApiKeySecretKey }}
+        resources:
+          {{- toYaml .Values.agents.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+{{- end }}

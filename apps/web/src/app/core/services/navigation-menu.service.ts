@@ -13,6 +13,7 @@ export interface NavigationMenuItem {
   icon?: string;
   badge?: string;
   isPremium?: boolean;
+  exactMatch?: boolean;
 }
 
 /**
@@ -79,6 +80,7 @@ export class NavigationMenuService {
         label: 'Dashboard',
         route: '/admin-sistema',
         icon: 'dashboard',
+        exactMatch: true,
       },
       {
         label: 'Instituciones',
@@ -117,6 +119,7 @@ export class NavigationMenuService {
         label: 'Dashboard',
         route: '/admin-institucion',
         icon: 'dashboard',
+        exactMatch: true,
       },
       {
         label: 'Miembros',
@@ -150,6 +153,7 @@ export class NavigationMenuService {
         label: 'Dashboard',
         route: '/admin-salud',
         icon: 'dashboard',
+        exactMatch: true,
       },
       {
         label: 'Profesionales',
@@ -189,6 +193,7 @@ export class NavigationMenuService {
         label: 'Dashboard',
         route: '/profesional',
         icon: 'dashboard',
+        exactMatch: true,
       },
       {
         label: 'Mis Pacientes',
@@ -215,6 +220,19 @@ export class NavigationMenuService {
         route: '/profesional/mensajes',
         icon: 'message',
       },
+      // Herramientas de Especialidad (Nutrición)
+      {
+        label: 'Planificador Menús',
+        route: '/profesional/herramientas/planificador',
+        icon: 'restaurant_menu',
+        isPremium: true
+      },
+      {
+        label: 'Antropometría',
+        route: '/profesional/herramientas/antropometria',
+        icon: 'straighten',
+        isPremium: true
+      },
     ];
   }
 
@@ -227,6 +245,7 @@ export class NavigationMenuService {
         label: 'Mi Panel',
         route: '/paciente',
         icon: 'dashboard',
+        exactMatch: true,
       },
       {
         label: 'Mind (Mente)',
@@ -265,6 +284,7 @@ export class NavigationMenuService {
         label: 'Inicio',
         route: '/general',
         icon: 'home',
+        exactMatch: true,
       },
       {
         label: 'Mind (Mente)',

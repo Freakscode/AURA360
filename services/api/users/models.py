@@ -6,6 +6,15 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
+class TimestampedModel(models.Model):
+    """Modelo base abstracto con timestamps."""
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
 class UserTier(models.TextChoices):
     """
     Enumeración de los niveles de membresía disponibles.
@@ -397,3 +406,73 @@ class UsageLedger(models.Model):
 
     def __str__(self):
         return f"{self.user_id}:{self.resource_code} ({self.amount})"
+
+
+class CareRelationshipStatus(models.TextChoices):
+    ACTIVE = 'active', 'Activo'
+    INACTIVE = 'inactive', 'Inactivo'
+    ENDED = 'ended', 'Finalizado'
+
+
+class CareRelationshipContext(models.TextChoices):
+    INSTITUTIONAL = 'institutional', 'Institucional'
+    INDEPENDENT = 'independent', 'Independiente'
+
+
+class CareRelationship(TimestampedModel):
+    """
+    Relación de cuidado entre un profesional y un paciente.
+    Refleja la tabla public.care_relationships en Supabase.
+    """
+    
+    # Clave primaria
+    id = models.BigAutoField(primary_key=True)
+    
+    # Relaciones
+    professional_user = models.ForeignKey(
+        AppUser,
+        on_delete=models.CASCADE,
+        related_name='professional_relationships',
+        db_column='professional_user_id',
+        help_text="El profesional de la salud."
+    )
+    
+    patient_user = models.ForeignKey(
+        AppUser,
+        on_delete=models.CASCADE,
+        related_name='patient_relationships',
+        db_column='patient_user_id',
+        help_text="El paciente bajo cuidado."
+    )
+    
+    # Contexto
+    context_type = models.CharField(
+        max_length=32,
+        choices=CareRelationshipContext.choices,
+        default=CareRelationshipContext.INDEPENDENT
+    )
+    
+    status = models.CharField(
+        max_length=32,
+        choices=CareRelationshipStatus.choices,
+        default=CareRelationshipStatus.ACTIVE
+    )
+    
+    notes = models.TextField(null=True, blank=True)
+    
+    started_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    
+    # Timestamps manejados por TimestampedModel (created_at, updated_at)
+    # Nota: Si la tabla en supabase usa 'created_at', TimestampedModel lo cubre.
+
+    class Meta:
+        db_table = 'care_relationships'
+        managed = False  # Supabase es el dueño
+        unique_together = ('professional_user', 'patient_user')
+        ordering = ['-started_at']
+        verbose_name = 'Relación de Cuidado'
+        verbose_name_plural = 'Relaciones de Cuidado'
+
+    def __str__(self):
+        return f"Prof: {self.professional_user} -> Paciente: {self.patient_user}"

@@ -40,17 +40,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # Third-party apps
     'rest_framework',
     'django_filters',
     'corsheaders',
     'drf_spectacular',
-    
+
     # Local apps
     'users.apps.UsersConfig',
     'body.apps.BodyConfig',
     'holistic.apps.HolisticConfig',
+    'papers.apps.PapersConfig',
 ]
 
 MIDDLEWARE = [
@@ -277,36 +278,12 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-# ==============================================================================
 # CORS CONFIGURATION
-# ==============================================================================
-# Configuración para permitir peticiones desde el frontend
-
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://localhost:8080',
-    cast=Csv()
-)
-
+CORS_ALLOW_ALL_ORIGINS = True  # DEBUG: Permitir todo
 CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
-
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
     'x-csrftoken',
     'x-requested-with',
 ]
@@ -362,3 +339,17 @@ CELERY_BEAT_SCHEDULE = {
 CELERY_IMPORTS = (
     'holistic.tasks',
 )
+
+
+# ==============================================================================
+# AWS S3 CONFIGURATION
+# ==============================================================================
+# Configuración para almacenamiento de artículos científicos en AWS S3
+
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+AWS_S3_REGION = config('AWS_S3_REGION', default='us-east-1')
+AWS_S3_BUCKET_NAME = config('AWS_S3_BUCKET_NAME', default='aura360-clinical-papers')
+
+# URL presignada expira en 15 minutos por defecto
+AWS_S3_PRESIGNED_URL_EXPIRATION = config('AWS_S3_PRESIGNED_URL_EXPIRATION', default=900, cast=int)

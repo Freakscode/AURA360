@@ -1,0 +1,53 @@
+{{- if .Values.vectordbApi.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vectordb-api
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- $component := dict "component" "vectordb-api" "Chart" .Chart "Release" .Release "Values" .Values }}
+    {{- include "aura360.componentLabels" $component | nindent 4 }}
+spec:
+  {{- if not .Values.vectordbApi.autoscaling.enabled }}
+  replicas: {{ .Values.vectordbApi.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "aura360.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: vectordb-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "aura360.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: vectordb-api
+    spec:
+      containers:
+      - name: vectordb-api
+        image: {{ include "aura360.image" (dict "Values" .Values "repository" .Values.vectordbApi.image.repository "tag" .Values.vectordbApi.image.tag) }}
+        imagePullPolicy: {{ .Values.vectordbApi.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.vectordbApi.env.PORT }}
+          protocol: TCP
+        env:
+        {{- range $key, $value := .Values.vectordbApi.env }}
+        - name: {{ $key }}
+          value: "{{ $value }}"
+        {{- end }}
+        resources:
+          {{- toYaml .Values.vectordbApi.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+{{- end }}

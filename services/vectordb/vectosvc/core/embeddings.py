@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from typing import Dict, Iterable, List, Optional, Tuple
+import os
 import numpy as np
 from loguru import logger
 import redis
@@ -30,6 +31,7 @@ class Embeddings:
         self.model_name = model_name or settings.embedding_model
         self._impl = None
         self.dim: Optional[int] = None
+        self.is_gemini = self.model_name.startswith("gemini-embedding")
         self.cache_enabled = settings.cache_embeddings
         self._cache_prefix = self._build_cache_prefix(self.model_name)
         
@@ -57,17 +59,32 @@ class Embeddings:
                 self.cache_enabled = False
                 self._redis = None
 
-        try:
-            from fastembed import TextEmbedding
+        if self.is_gemini:
+            try:
+                from google import genai  # type: ignore
+                from google.genai import types  # noqa: F401
 
-            self._impl = TextEmbedding(model_name=self.model_name)
-            logger.info("FastEmbed model loaded: {}", self.model_name)
-        except Exception as e:  # pragma: no cover
-            logger.warning(
-                "FastEmbed not available ({}). Falling back to random embeddings; install fastembed.",
-                e,
-            )
-            self._impl = None
+                api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+                if not api_key:
+                    raise RuntimeError("Falta GOOGLE_API_KEY/GEMINI_API_KEY para gemini-embedding")
+                self._gemini_client = genai.Client(api_key=api_key)
+                self.dim = settings.embedding_dim
+                logger.info("Gemini embedding client inicializado: {}", self.model_name)
+            except Exception as e:  # pragma: no cover
+                logger.warning("Gemini client no disponible ({}).", e)
+                self._gemini_client = None
+        else:
+            try:
+                from fastembed import TextEmbedding
+
+                self._impl = TextEmbedding(model_name=self.model_name)
+                logger.info("FastEmbed model loaded: {}", self.model_name)
+            except Exception as e:  # pragma: no cover
+                logger.warning(
+                    "FastEmbed not available ({}). Falling back to random embeddings; install fastembed.",
+                    e,
+                )
+                self._impl = None
 
     def _build_cache_prefix(self, model_name: str) -> str:
         """Construye un prefijo estable por modelo para las keys de caché."""
@@ -151,6 +168,33 @@ class Embeddings:
         except Exception as e:
             logger.warning("Failed to store embeddings in cache: {}", e)
 
+    def _compute_embeddings(self, texts: List[str]) -> Optional[np.ndarray]:
+        """Calcula embeddings según el backend configurado."""
+        if len(texts) == 0:
+            return None
+
+        if self.is_gemini:
+            if self._gemini_client is None:
+                raise RuntimeError("Gemini client no inicializado")
+            vecs = []
+            for text in texts:
+                resp = self._gemini_client.models.embed_content(
+                    model=self.model_name,
+                    contents=text,
+                    config={
+                        "output_dimensionality": settings.embedding_dim,
+                    },
+                )
+                emb = resp.embeddings[0].values
+                vecs.append(emb)
+            return np.array(vecs, dtype=np.float32)
+
+        if self._impl is not None:
+            vecs = list(self._impl.embed(texts))
+            return np.array(vecs, dtype=np.float32)
+
+        return None
+
     def encode(self, texts: Iterable[str]) -> np.ndarray:
         """
         Codifica textos a vectores, utilizando caché cuando está disponible.
@@ -172,24 +216,21 @@ class Embeddings:
         if len(misses) > 0:
             miss_texts = [texts[idx] for idx in misses]
 
-            if self._impl is not None:
-                # FastEmbed returns a generator de listas
-                vecs = list(self._impl.embed(miss_texts))
-                computed = np.array(vecs, dtype=np.float32)
-            else:  # pragma: no cover
+            try:
+                computed = self._compute_embeddings(miss_texts)
+            except Exception as e:
+                logger.error("Error computing embeddings with model {}: {}", self.model_name, e)
                 rng = np.random.default_rng(0)
                 dim = self.dim or settings.embedding_dim
                 computed = rng.standard_normal((len(miss_texts), dim)).astype(np.float32)
 
-            if computed.size == 0:
+            if computed is None or computed.size == 0:
                 computed = None
             else:
-                # Normalizar si usa cosine
                 if settings.vector_distance.lower() == "cosine":
                     norms = np.linalg.norm(computed, axis=1, keepdims=True) + 1e-12
                     computed = computed / norms
 
-                # Actualizar dim y cachear
                 self.dim = int(computed.shape[1])
                 self._store_cached(texts, misses, computed)
 
@@ -245,4 +286,3 @@ class Embeddings:
             "total": total,
             "hit_rate_percent": round(hit_rate, 2),
         }
-

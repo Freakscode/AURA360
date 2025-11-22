@@ -1,0 +1,103 @@
+{{- if .Values.api.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- $component := dict "component" "api" "Chart" .Chart "Release" .Release "Values" .Values }}
+    {{- include "aura360.componentLabels" $component | nindent 4 }}
+spec:
+  {{- if not .Values.api.autoscaling.enabled }}
+  replicas: {{ .Values.api.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "aura360.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "aura360.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: api
+    spec:
+      containers:
+      - name: api
+        image: {{ include "aura360.image" (dict "Values" .Values "repository" .Values.api.image.repository "tag" .Values.api.image.tag) }}
+        imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.api.env.PORT }}
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "{{ .Values.api.env.PORT }}"
+        - name: DJANGO_SETTINGS_MODULE
+          value: "{{ .Values.api.env.DJANGO_SETTINGS_MODULE }}"
+        - name: WEB_CONCURRENCY
+          value: "{{ .Values.api.env.WEB_CONCURRENCY }}"
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.api.supabase.urlSecretName }}
+              key: {{ .Values.api.supabase.urlSecretKey }}
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.api.supabase.serviceRoleKeySecretName }}
+              key: {{ .Values.api.supabase.serviceRoleKeySecretKey }}
+        - name: SUPABASE_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.api.supabase.jwtSecretName }}
+              key: {{ .Values.api.supabase.jwtSecretKey }}
+        {{- $db := .Values.api.database }}
+        {{- if $db }}
+        - name: DB_ENGINE
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db.secretName }}
+              key: {{ default "engine" $db.engineKey }}
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db.secretName }}
+              key: {{ default "name" $db.nameKey }}
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db.secretName }}
+              key: {{ default "user" $db.userKey }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db.secretName }}
+              key: {{ default "password" $db.passwordKey }}
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db.secretName }}
+              key: {{ default "host" $db.hostKey }}
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db.secretName }}
+              key: {{ default "port" $db.portKey }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.api.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+{{- end }}

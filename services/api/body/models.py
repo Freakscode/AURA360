@@ -212,6 +212,217 @@ class SleepLog(TimestampedModel):
         verbose_name_plural = 'Registros de Sueño'
 
 
+class MeasurementProtocol(models.TextChoices):
+    """Protocolos de medición estandarizados."""
+    ISAK_PROFILE_RESTRICTED = 'isak_restricted', 'ISAK Perfil Restringido'
+    ISAK_FULL = 'isak_full', 'ISAK Perfil Completo'
+    CLINICAL_BASIC = 'clinical_basic', 'Clínico Básico'
+    ELDERLY_SARCOPENIA = 'elderly_sarcopenia', 'Evaluación Adulto Mayor (Sarcopenia)'
+    SELF_REPORTED = 'self_reported', 'Auto-reportado'
+
+
+class PatientType(models.TextChoices):
+    """Clasificación del paciente para interpretación de resultados."""
+    SEDENTARY = 'sedentary', 'Sedentario'
+    ACTIVE = 'active', 'Activo'
+    ATHLETE = 'athlete', 'Deportista'
+    ELDERLY = 'elderly', 'Adulto Mayor'
+    CHILD = 'child', 'Niño/Adolescente'
+
+
+class BodyMeasurement(TimestampedModel):
+    """
+    Registro completo de mediciones antropométricas.
+    Soporta protocolos ISAK y evaluaciones clínicas avanzadas.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        help_text="Identificador único de la medición."
+    )
+    auth_user_id = models.UUIDField(
+        db_index=True,
+        help_text="ID del usuario (Paciente) al que pertenecen las medidas."
+    )
+    recorded_at = models.DateTimeField(
+        default=timezone.now,
+        db_index=True,
+        help_text="Fecha y hora de la toma de medidas."
+    )
+    
+    # Contexto de la Medición
+    protocol = models.CharField(
+        max_length=32,
+        choices=MeasurementProtocol.choices,
+        default=MeasurementProtocol.CLINICAL_BASIC,
+        help_text="Protocolo utilizado para la toma de datos."
+    )
+    patient_type = models.CharField(
+        max_length=32,
+        choices=PatientType.choices,
+        default=PatientType.SEDENTARY,
+        help_text="Clasificación del paciente al momento de la medición."
+    )
+
+    # ------------------------------------------------------------------
+    # 1. MEDIDAS BÁSICAS (Siempre requeridas en clínico)
+    # ------------------------------------------------------------------
+    weight_kg = models.DecimalField(
+        max_digits=5, decimal_places=2, help_text="Peso corporal (kg)."
+    )
+    height_cm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Estatura (cm)."
+    )
+    bmi = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, help_text="IMC calculado automáticamente."
+    )
+
+    # ------------------------------------------------------------------
+    # 2. CIRCUNFERENCIAS (Perímetros)
+    # ------------------------------------------------------------------
+    waist_circumference_cm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Cintura mínima (cm)."
+    )
+    hip_circumference_cm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Cadera máxima (cm)."
+    )
+    arm_relaxed_circumference_cm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Brazo relajado (cm)."
+    )
+    arm_flexed_circumference_cm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Brazo flexionado y contraído (cm)."
+    )
+    calf_circumference_cm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Pantorrilla máxima (cm)."
+    )
+    thigh_circumference_cm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Muslo medio (cm)."
+    )
+
+    # ------------------------------------------------------------------
+    # 3. PLIEGUES CUTÁNEOS (Skinfolds - mm)
+    # ------------------------------------------------------------------
+    triceps_skinfold_mm = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True, help_text="Pliegue Tricipital (mm)."
+    )
+    biceps_skinfold_mm = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True, help_text="Pliegue Bicipital (mm)."
+    )
+    subscapular_skinfold_mm = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True, help_text="Pliegue Subescapular (mm)."
+    )
+    suprailiac_skinfold_mm = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True, help_text="Pliegue Suprailiaco/Cresta Ilíaca (mm)."
+    )
+    abdominal_skinfold_mm = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True, help_text="Pliegue Abdominal (mm)."
+    )
+    thigh_skinfold_mm = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True, help_text="Pliegue Muslo anterior (mm)."
+    )
+    calf_skinfold_mm = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True, help_text="Pliegue Pantorrilla medial (mm)."
+    )
+
+    # ------------------------------------------------------------------
+    # 4. DIÁMETROS ÓSEOS (Breadths - mm)
+    # ------------------------------------------------------------------
+    humerus_breadth_mm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Diámetro biepicondilar del húmero (mm)."
+    )
+    femur_breadth_mm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Diámetro bicondilar del fémur (mm)."
+    )
+    wrist_breadth_mm = models.DecimalField(
+        max_digits=5, decimal_places=1, null=True, blank=True, help_text="Diámetro biestiloideo de muñeca (mm)."
+    )
+
+    # ------------------------------------------------------------------
+    # 5. RESULTADOS CALCULADOS (Outputs)
+    # ------------------------------------------------------------------
+    body_fat_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, help_text="% Grasa Corporal."
+    )
+    fat_mass_kg = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, help_text="Masa Grasa (kg)."
+    )
+    muscle_mass_kg = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, help_text="Masa Muscular (kg)."
+    )
+    muscle_mass_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, help_text="% Masa Muscular."
+    )
+    
+    # Somatotipo Heath-Carter
+    endomorphy = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    mesomorphy = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    ectomorphy = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    
+    # Índices de Salud
+    waist_hip_ratio = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, help_text="ICC")
+    waist_height_ratio = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, help_text="ICE")
+    visceral_fat_level = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Nivel grasa visceral (BIA).")
+
+    # ------------------------------------------------------------------
+    # 6. AUDITORÍA
+    # ------------------------------------------------------------------
+    notes = models.TextField(
+        null=True, blank=True, help_text="Observaciones clínicas."
+    )
+    measured_by = models.UUIDField(
+        null=True, blank=True, help_text="ID del profesional."
+    )
+    photos = models.JSONField(
+        default=list, blank=True, help_text="URLs de fotos."
+    )
+
+    class Meta:
+        db_table = 'body_measurements'
+        ordering = ['-recorded_at', '-created_at']
+        verbose_name = 'Medición Corporal'
+        verbose_name_plural = 'Mediciones Corporales'
+        indexes = [
+            models.Index(fields=['auth_user_id', 'recorded_at']),
+            models.Index(fields=['protocol']),
+        ]
+
+    def save(self, *args, **kwargs):
+        """Calcula métricas derivadas antes de guardar."""
+        self.calculate_derived_metrics()
+        super().save(*args, **kwargs)
+
+    def calculate_derived_metrics(self):
+        """
+        Realiza cálculos automáticos basados en los datos disponibles.
+        """
+        # 1. IMC
+        if self.weight_kg and self.height_cm:
+            height_m = float(self.height_cm) / 100
+            self.bmi = float(self.weight_kg) / (height_m ** 2)
+
+        # 2. Índice Cintura-Cadera (ICC)
+        if self.waist_circumference_cm and self.hip_circumference_cm:
+            self.waist_hip_ratio = float(self.waist_circumference_cm) / float(self.hip_circumference_cm)
+
+        # 3. Índice Cintura-Estatura (ICE)
+        if self.waist_circumference_cm and self.height_cm:
+            self.waist_height_ratio = float(self.waist_circumference_cm) / float(self.height_cm)
+
+        # 4. Somatotipo (Si están los datos requeridos)
+        # Implementación simplificada de Heath-Carter si hay datos
+        if (self.height_cm and self.weight_kg and 
+            self.triceps_skinfold_mm and self.subscapular_skinfold_mm and 
+            self.suprailiac_skinfold_mm and self.calf_skinfold_mm and
+            self.humerus_breadth_mm and self.femur_breadth_mm and
+            self.arm_flexed_circumference_cm and self.calf_circumference_cm):
+            
+            # TODO: Implementar lógica completa de Heath-Carter aquí o en un servicio
+            pass
+
+
+
 class NutritionPlan(TimestampedModel):
     """
     Plan nutricional estructurado para un usuario.
@@ -236,7 +447,26 @@ class NutritionPlan(TimestampedModel):
     
     auth_user_id = models.UUIDField(
         db_index=True,
+        null=True,  # Puede ser nulo si es una plantilla global
+        blank=True,
         help_text="ID del usuario en Supabase (auth.users.id) al que pertenece este plan."
+    )
+    
+    # Campos de Gestión Profesional (NUEVOS)
+    created_by = models.UUIDField(
+        null=True,
+        blank=True,
+        help_text="ID del profesional (Nutricionista) que creó o asignó este plan."
+    )
+    is_template = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Si es True, este plan es una plantilla reutilizable."
+    )
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Descripción interna para el profesional (ej. 'Keto para principiantes')."
     )
     
     # Campos principales extraídos para facilitar consultas

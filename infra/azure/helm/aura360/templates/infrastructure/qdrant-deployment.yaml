@@ -1,0 +1,60 @@
+{{- if .Values.qdrant.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- $component := dict "component" "qdrant" "Chart" .Chart "Release" .Release "Values" .Values }}
+    {{- include "aura360.componentLabels" $component | nindent 4 }}
+spec:
+  replicas: {{ .Values.qdrant.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "aura360.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: qdrant
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "aura360.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: qdrant
+    spec:
+      containers:
+      - name: qdrant
+        image: "{{ .Values.qdrant.image.repository }}:{{ .Values.qdrant.image.tag }}"
+        imagePullPolicy: {{ .Values.qdrant.image.pullPolicy }}
+        ports:
+        - name: rest
+          containerPort: {{ .Values.qdrant.service.restPort }}
+          protocol: TCP
+        - name: grpc
+          containerPort: {{ .Values.qdrant.service.grpcPort }}
+          protocol: TCP
+        resources:
+          {{- toYaml .Values.qdrant.resources | nindent 10 }}
+        {{- if .Values.qdrant.persistence.enabled }}
+        volumeMounts:
+        - name: qdrant-storage
+          mountPath: /qdrant/storage
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: rest
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: rest
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      {{- if .Values.qdrant.persistence.enabled }}
+      volumes:
+      - name: qdrant-storage
+        persistentVolumeClaim:
+          claimName: qdrant-storage
+      {{- end }}
+{{- end }}

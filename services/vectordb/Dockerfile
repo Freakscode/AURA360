@@ -9,14 +9,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# Copy shared messaging module first
+COPY shared /app-shared
+RUN pip install -e /app-shared
+
 ARG EXTRAS=""
-COPY pyproject.toml .
-COPY vectosvc vectosvc
-COPY scripts scripts
+COPY vectordb/pyproject.toml .
+COPY vectordb/vectosvc vectosvc
+COPY vectordb/scripts scripts
 RUN pip install -U pip setuptools wheel \
     && if [ -z "$EXTRAS" ]; then pip install -e .; else pip install -e .[$EXTRAS]; fi
 
-COPY config config
+COPY vectordb/config config
 
 EXPOSE 8000
 

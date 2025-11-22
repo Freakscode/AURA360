@@ -25,7 +25,11 @@ class QdrantStore:
         if settings.prefer_grpc:
             grpc_kwargs["prefer_grpc"] = True
 
-        self.client = client or QdrantClient(url=settings.qdrant_url, **grpc_kwargs)
+        self.client = client or QdrantClient(
+            url=settings.qdrant_url,
+            api_key=settings.qdrant_api_key,
+            **grpc_kwargs
+        )
         self.collection = settings.collection_name
 
     def get_collection_for_source_type(self, source_type: Optional[str]) -> str:

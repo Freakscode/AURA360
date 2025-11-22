@@ -163,3 +163,13 @@ migrate_working_dir/
 
 # Production config backups
 **/*.production.backup.*
+
+# ============ Terraform ============
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# ============ Reports & Logs ============
+scripts/pipeline_reports/
+

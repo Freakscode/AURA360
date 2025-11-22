@@ -24,7 +24,7 @@ export type CardColor = 'default' | 'primary' | 'success' | 'warning' | 'error' 
           </div>
         }
 
-        <div [class]="bodyClasses()">
+        <div [class]="bodyClasses()" [style.padding]="padding()">
           <ng-content></ng-content>
         </div>
 
@@ -85,6 +85,7 @@ export class CardComponent {
   readonly hasFooter = input<boolean>(false);
   readonly headerActions = input<boolean>(false);
   readonly footerActions = input<boolean>(false);
+  readonly padding = input<string | null>(null);
 
   cardClasses(): string {
     const classes = ['card'];

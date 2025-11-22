@@ -1,0 +1,9 @@
+{{- if .Values.namespaceCreate }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+  labels:
+    {{- include "aura360.labels" . | nindent 4 }}
+    name: {{ .Values.namespace }}
+{{- end }}

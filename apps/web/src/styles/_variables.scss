@@ -3,58 +3,86 @@
 // ============================================
 
 // --------------------------------------------
-// Colors - Primary Palette
+// Brand Colors (from Manual de Marca)
 // --------------------------------------------
-$color-primary-50: #ecfdf5;
-$color-primary-100: #d1fae5;
-$color-primary-200: #a7f3d0;
-$color-primary-300: #6ee7b7;
-$color-primary-400: #34d399;
-$color-primary-500: #10b981; // Main brand color
-$color-primary-600: #059669;
-$color-primary-700: #047857;
-$color-primary-800: #065f46;
-$color-primary-900: #064e3b;
+$brand-purple: #AC4FC6;
+$brand-teal: #71DBD4;
+$brand-yellow: #FFC600;
+$brand-dark: #041C2C;
+$brand-white: #FFFFFF;
 
 // --------------------------------------------
-// Colors - Neutral Palette (Grays)
+// Colors - Primary Palette (Purple - #AC4FC6)
 // --------------------------------------------
-$color-gray-50: #f9fafb;
-$color-gray-100: #f3f4f6;
-$color-gray-200: #e5e7eb;
-$color-gray-300: #d1d5db;
-$color-gray-400: #9ca3af;
-$color-gray-500: #6b7280;
-$color-gray-600: #4b5563;
-$color-gray-700: #374151;
-$color-gray-800: #1f2937;
-$color-gray-900: #111827;
+$color-primary-50: #fcf5fd;
+$color-primary-100: #f5dffb;
+$color-primary-200: #ebc2f8;
+$color-primary-300: #dd9bf2;
+$color-primary-400: #ca6ce8;
+$color-primary-500: #ac4fc6; // Main Brand Color
+$color-primary-600: #8e39a6;
+$color-primary-700: #752b87;
+$color-primary-800: #61266f;
+$color-primary-900: #51235b;
+
+// --------------------------------------------
+// Colors - Secondary Palette (Teal - #71DBD4)
+// --------------------------------------------
+$color-secondary-50: #f0fdfc;
+$color-secondary-100: #ccfbf6;
+$color-secondary-200: #99f6ec;
+$color-secondary-300: #71dbd4; // Secondary Brand Color
+$color-secondary-400: #2dd4bf;
+$color-secondary-500: #14b8a6;
+$color-secondary-600: #0d9488;
+$color-secondary-700: #0f766e;
+$color-secondary-800: #115e59;
+$color-secondary-900: #134e4a;
+
+// --------------------------------------------
+// Colors - Accent (Yellow - #FFC600)
+// --------------------------------------------
+$color-accent-500: $brand-yellow;
+
+// --------------------------------------------
+// Colors - Neutral Palette (Dark Blue Base)
+// --------------------------------------------
+$color-gray-50: #f8fafc;
+$color-gray-100: #f1f5f9;
+$color-gray-200: #e2e8f0;
+$color-gray-300: #cbd5e1;
+$color-gray-400: #94a3b8;
+$color-gray-500: #64748b;
+$color-gray-600: #475569;
+$color-gray-700: #334155;
+$color-gray-800: #1e293b;
+$color-gray-900: $brand-dark; // #041C2C
 
 // --------------------------------------------
 // Colors - Semantic (Status)
 // --------------------------------------------
-// Success
-$color-success-50: #f0fdf4;
-$color-success-100: #dcfce7;
-$color-success-200: #bbf7d0;
-$color-success-300: #86efac;
-$color-success-400: #4ade80;
-$color-success-500: #22c55e;
-$color-success-600: #16a34a;
-$color-success-700: #15803d;
-$color-success-800: #166534;
-$color-success-900: #14532d;
+// Success (Teal-ish)
+$color-success-50: #f0fdfa;
+$color-success-100: #ccfbf1;
+$color-success-200: #99f6ec;
+$color-success-300: #5eead4;
+$color-success-400: #2dd4bf;
+$color-success-500: #14b8a6;
+$color-success-600: #0d9488;
+$color-success-700: #0f766e;
+$color-success-800: #115e59;
+$color-success-900: #134e4a;
 
-// Warning
+// Warning (Yellow-ish)
 $color-warning-50: #fffbeb;
 $color-warning-100: #fef3c7;
 $color-warning-200: #fde68a;
 $color-warning-300: #fcd34d;
 $color-warning-400: #fbbf24;
-$color-warning-500: #f59e0b;
+$color-warning-500: $brand-yellow; // #FFC600
 $color-warning-600: #d97706;
-$color-warning-700: #92400e;
-$color-warning-800: #b45309;
+$color-warning-700: #b45309;
+$color-warning-800: #92400e;
 $color-warning-900: #78350f;
 
 // Error/Danger
@@ -69,7 +97,7 @@ $color-error-700: #b91c1c;
 $color-error-800: #991b1b;
 $color-error-900: #7f1d1d;
 
-// Info
+// Info (Blue-ish)
 $color-info-50: #eff6ff;
 $color-info-100: #dbeafe;
 $color-info-200: #bfdbfe;
@@ -77,19 +105,19 @@ $color-info-300: #93c5fd;
 $color-info-400: #60a5fa;
 $color-info-500: #3b82f6;
 $color-info-600: #2563eb;
-$color-info-700: #1e40af;
-$color-info-800: #1e3a8a;
-$color-info-900: #1a3673;
+$color-info-700: #1d4ed8;
+$color-info-800: #1e40af;
+$color-info-900: #1e3a8a;
 
 // --------------------------------------------
 // Semantic Color Aliases
 // --------------------------------------------
-$color-text-primary: $color-gray-900;
+$color-text-primary: $brand-dark;
 $color-text-secondary: $color-gray-600;
-$color-text-muted: $color-gray-600;
+$color-text-muted: $color-gray-500;
 $color-text-disabled: $color-gray-400;
 
-$color-bg-primary: #ffffff;
+$color-bg-primary: $brand-white;
 $color-bg-secondary: $color-gray-50;
 $color-bg-tertiary: $color-gray-100;
 
@@ -161,29 +189,29 @@ $space-24: 6rem;     // 96px
 $radius-none: 0;
 $radius-sm: 0.125rem;    // 2px
 $radius-base: 0.25rem;   // 4px
-$radius-md: 0.375rem;    // 6px
-$radius-lg: 0.5rem;      // 8px
-$radius-xl: 0.75rem;     // 12px
-$radius-2xl: 1rem;       // 16px
-$radius-3xl: 1.5rem;     // 24px
+$radius-md: 0.5rem;      // 8px - Increased for softer look
+$radius-lg: 0.75rem;     // 12px
+$radius-xl: 1rem;        // 16px
+$radius-2xl: 1.5rem;     // 24px
+$radius-3xl: 2rem;       // 32px
 $radius-full: 9999px;    // Fully rounded
 
 // --------------------------------------------
-// Shadows
+// Shadows (Enhanced for depth)
 // --------------------------------------------
-$shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-$shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-$shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-$shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+$shadow-xs: 0 1px 2px 0 rgba($brand-dark, 0.05);
+$shadow-sm: 0 1px 3px 0 rgba($brand-dark, 0.1), 0 1px 2px -1px rgba($brand-dark, 0.06);
+$shadow-base: 0 4px 6px -1px rgba($brand-dark, 0.1), 0 2px 4px -2px rgba($brand-dark, 0.06);
+$shadow-md: 0 10px 15px -3px rgba($brand-dark, 0.1), 0 4px 6px -4px rgba($brand-dark, 0.05);
+$shadow-lg: 0 20px 25px -5px rgba($brand-dark, 0.1), 0 8px 10px -6px rgba($brand-dark, 0.05);
+$shadow-xl: 0 25px 50px -12px rgba($brand-dark, 0.25);
+$shadow-2xl: 0 25px 50px -12px rgba($brand-dark, 0.25);
 $shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
 $shadow-none: none;
 
 // Focus Ring
-$shadow-focus: 0 0 0 3px rgba(16, 185, 129, 0.1);
-$shadow-focus-error: 0 0 0 3px rgba(239, 68, 68, 0.1);
+$shadow-focus: 0 0 0 3px rgba($brand-purple, 0.3);
+$shadow-focus-error: 0 0 0 3px rgba($color-error-500, 0.3);
 
 // --------------------------------------------
 // Transitions
@@ -197,6 +225,9 @@ $transition-colors: background-color $transition-base, border-color $transition-
 $transition-transform: transform $transition-base;
 $transition-opacity: opacity $transition-base;
 
+// Alias for legacy support
+$transition-default: $transition-base;
+
 // --------------------------------------------
 // Z-Index Scale
 // --------------------------------------------
@@ -209,7 +240,7 @@ $z-index-popover: 1060;
 $z-index-tooltip: 1070;
 
 // --------------------------------------------
-// Breakpoints (for responsive design)
+// Breakpoints
 // --------------------------------------------
 $breakpoint-sm: 640px;
 $breakpoint-md: 768px;
@@ -227,7 +258,7 @@ $container-xl: 1280px;
 $container-2xl: 1400px;
 
 // --------------------------------------------
-// Component-Specific Variables
+// Component Variables
 // --------------------------------------------
 
 // Buttons
@@ -256,7 +287,7 @@ $badge-padding-x: $space-3;
 $badge-font-size: $font-size-sm;
 $badge-border-radius: $radius-full;
 
-// Tables
+// Tables (Detected as missing)
 $table-cell-padding: $space-3 $space-4;
 $table-border-color: $color-border-light;
 $table-header-bg: $color-gray-50;
@@ -266,4 +297,27 @@ $table-row-hover-bg: $color-gray-50;
 $modal-backdrop-bg: rgba(0, 0, 0, 0.5);
 $modal-border-radius: $radius-lg;
 $modal-padding: $space-6;
-$modal-max-width: 32rem;
+$modal-max-width: 32rem; // Added missing variable
+
+// --------------------------------------------
+// Compatibility & Legacy Aliases
+// (Found in codebase scan but missing in new tokens)
+// --------------------------------------------
+
+// Legacy Brand Colors
+$brand-primary: $brand-purple;
+$brand-secondary: $brand-teal;
+$brand-accent: $brand-yellow;
+
+// Legacy Text Colors
+$text-primary: $color-text-primary;
+$text-secondary: $color-text-secondary;
+$text-muted: $color-text-muted;
+
+// Legacy Surfaces
+$surface-primary: $color-bg-primary;
+$surface-neutral: $color-bg-secondary;
+
+// Legacy Errors
+$error-color: $color-error-500;
+$error-border: $color-error-200;

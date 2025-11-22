@@ -1,5 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { SupabaseClientService } from '../../../auth/services/supabase-client.service';
+import { AuthSessionStore } from '../../auth/services/auth-session.store';
+import { environment } from '../../../../environments/environment';
 import {
   CareRelationship,
   CareRelationshipWithPatient,
@@ -12,6 +16,10 @@ import {
 })
 export class CareRelationshipService {
   private readonly supabaseClient = inject(SupabaseClientService);
+  private readonly http = inject(HttpClient);
+  private readonly authStore = inject(AuthSessionStore);
+  
+  private readonly API_URL = `${environment.apiBaseUrl}/users/users`;
 
   // Estado reactivo para pacientes
   private readonly _patients = signal<CareRelationshipWithPatient[]>([]);
@@ -22,6 +30,30 @@ export class CareRelationshipService {
 
   private readonly _error = signal<string | null>(null);
   readonly error = this._error.asReadonly();
+  
+  private get headers() {
+    const token = this.authStore.accessToken();
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+  }
+
+  /**
+   * Invita a un nuevo paciente creando su cuenta y relación.
+   */
+  async invitePatient(data: { email: string; full_name: string; phone_number?: string }): Promise<void> {
+      try {
+          await firstValueFrom(
+              this.http.post(`${this.API_URL}/invite-patient/`, data, { headers: this.headers })
+          );
+          // Recargar lista
+          await this.loadMyPatients();
+      } catch (error) {
+          console.error('Error invitando paciente:', error);
+          throw error;
+      }
+  }
 
   /**
    * Obtiene todos los pacientes asignados al profesional actual
@@ -62,6 +94,7 @@ export class CareRelationshipService {
           *,
           patient:app_users!patient_user_id (
             id,
+            auth_user_id,
             email,
             full_name,
             age,
@@ -116,6 +149,7 @@ export class CareRelationshipService {
           *,
           patient:app_users!patient_user_id (
             id,
+            auth_user_id,
             email,
             full_name,
             age,

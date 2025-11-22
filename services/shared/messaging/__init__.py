@@ -8,7 +8,7 @@ Supports hybrid mode: Kafka (default) or Celery (fallback) via MESSAGING_BACKEND
 """
 
 from .producer import EventPublisher
-from .consumer import EventConsumer
+from .consumer import EventConsumer, EventHandler
 from .events import (
     UserEvent,
     ContextEvent,
@@ -29,6 +29,7 @@ __all__ = [
     # Kafka-specific (direct usage)
     "EventPublisher",
     "EventConsumer",
+    "EventHandler",
     "KafkaConfig",
 
     # Events

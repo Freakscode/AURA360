@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CareRelationshipService } from '../../services/care-relationship.service';
 import { CareRelationshipWithPatient } from '../../models/care-relationship.model';
 import { AssignPatientModalComponent } from '../../components/assign-patient-modal/assign-patient-modal.component';
+import { CreatePatientModalComponent } from '../../components/create-patient-modal/create-patient-modal.component';
 import { ButtonComponent, CardComponent, BadgeComponent } from '../../../../shared/components/ui';
 
 type SortField = 'name' | 'email' | 'date' | null;
@@ -19,6 +20,7 @@ type FilterStatus = 'all' | 'active' | 'inactive';
     RouterLink,
     FormsModule,
     AssignPatientModalComponent,
+    CreatePatientModalComponent,
     ButtonComponent,
     CardComponent,
     BadgeComponent,
@@ -31,9 +33,14 @@ type FilterStatus = 'all' | 'active' | 'inactive';
           <h1 class="text-4xl font-bold text-primary mb-2">Mis Pacientes</h1>
           <p class="text-muted">Pacientes bajo mi cuidado profesional</p>
         </div>
-        <ui-button variant="primary" (clicked)="openAssignModal()">
-          + Asignar Paciente
-        </ui-button>
+        <div class="d-flex gap-3">
+            <ui-button variant="outline" (clicked)="openAssignModal()">
+              Buscar Existente
+            </ui-button>
+            <ui-button variant="primary" (clicked)="openCreateModal()">
+              + Nuevo Paciente
+            </ui-button>
+        </div>
       </header>
 
       <!-- Filters Card -->
@@ -225,7 +232,13 @@ type FilterStatus = 'all' | 'active' | 'inactive';
       <app-assign-patient-modal
         [isOpen]="showAssignModal()"
         (closed)="closeAssignModal()"
-        (patientAssigned)="onPatientAssigned()" />
+        (patientAssigned)="onPatientActionComplete()" />
+        
+      <!-- Modal de creación -->
+      <app-create-patient-modal
+        [isOpen]="showCreateModal()"
+        (closed)="closeCreateModal()"
+        (created)="onPatientActionComplete()" />
     </div>
   `,
   styles: [
@@ -248,7 +261,9 @@ export class PatientsListComponent implements OnInit {
   readonly filterStatus = signal<FilterStatus>('all');
   readonly sortField = signal<SortField>(null);
   readonly sortDirection = signal<SortDirection>('asc');
+  
   readonly showAssignModal = signal(false);
+  readonly showCreateModal = signal(false);
 
   // Computed values
   readonly activePatients = computed(() =>
@@ -339,9 +354,18 @@ export class PatientsListComponent implements OnInit {
   closeAssignModal(): void {
     this.showAssignModal.set(false);
   }
+  
+  openCreateModal(): void {
+    this.showCreateModal.set(true);
+  }
+  
+  closeCreateModal(): void {
+    this.showCreateModal.set(false);
+  }
 
-  async onPatientAssigned(): Promise<void> {
+  async onPatientActionComplete(): Promise<void> {
     this.showAssignModal.set(false);
+    this.showCreateModal.set(false);
     await this.careService.loadMyPatients();
   }
 

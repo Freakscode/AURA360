@@ -1,0 +1,92 @@
+# Configuración del Pipeline Unificado de Papers
+# AURA360 - Validación, Upload a GCS e Ingesta a Qdrant
+
+# ==============================================================================
+# PATHS LOCALES
+# ==============================================================================
+
+# Directorio donde están los PDFs de papers
+local_papers_dir: "/path/to/papers"
+
+# Archivo JSON con la categorización generada por Gemini
+categorization_file: "/path/to/categorization.json"
+
+# ==============================================================================
+# CLOUD STORAGE
+# ==============================================================================
+
+# Provider de cloud storage: "gcs" o "s3"
+cloud_provider: "gcs"
+
+# Configuración para Google Cloud Storage
+gcs_bucket: "aura360-papers"
+gcs_project: "aura-360-471711"
+
+# Configuración para Amazon S3 (si usas s3)
+# s3_bucket: "aura360-papers"
+# s3_region: "us-east-1"
+
+# ==============================================================================
+# QDRANT
+# ==============================================================================
+
+# URL de Qdrant (local o cloud)
+# Local: http://localhost:6333
+# Cloud: https://your-cluster.qdrant.io
+qdrant_url: "${QDRANT_URL}"
+
+# API Key de Qdrant Cloud (dejar vacío si es local)
+qdrant_api_key: "${QDRANT_API_KEY}"
+
+# Nombre de la colección en Qdrant
+qdrant_collection: "holistic_memory"
+
+# ==============================================================================
+# VECTOR DB SERVICE
+# ==============================================================================
+
+# URL del servicio vectordb para ingesta
+# Local: http://localhost:8001
+# Desplegado: URL del servicio en cloud
+vectordb_api_url: "http://localhost:8001"
+
+# ==============================================================================
+# VALIDACIÓN
+# ==============================================================================
+
+# Modo de validación:
+# - interactive: Revisar paper por paper con CLI interactiva
+# - auto: Aprobar automáticamente si confidence >= threshold
+# - skip: Saltar validación, confiar en categorización actual
+validation_mode: "interactive"
+
+# Umbral de confianza para auto-aprobación (0.0 - 1.0)
+# Papers con confidence_score >= threshold se aprueban automáticamente
+auto_approve_threshold: 0.90
+
+# Tamaño de batch para procesamiento paralelo
+batch_size: 10
+
+# ==============================================================================
+# OPCIONES DE PIPELINE
+# ==============================================================================
+
+# Saltar fase de upload (útil para testing de validación)
+skip_upload: false
+
+# Saltar fase de ingesta (útil para testing de upload)
+skip_ingestion: false
+
+# Modo dry-run: simula todas las operaciones sin hacer cambios reales
+dry_run: false
+
+# ==============================================================================
+# LOGGING
+# ==============================================================================
+
+# Nivel de logging: DEBUG, INFO, WARNING, ERROR
+log_level: "INFO"
+
+# Archivo de log (opcional, dejar null para solo consola)
+log_file: null
+# log_file: "pipeline_logs/pipeline.log"

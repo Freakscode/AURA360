@@ -1,0 +1,25 @@
+{{- if .Values.qdrant.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- $component := dict "component" "qdrant" "Chart" .Chart "Release" .Release "Values" .Values }}
+    {{- include "aura360.componentLabels" $component | nindent 4 }}
+spec:
+  type: {{ .Values.qdrant.service.type }}
+  ports:
+  - name: rest
+    port: {{ .Values.qdrant.service.restPort }}
+    targetPort: rest
+    protocol: TCP
+  - name: grpc
+    port: {{ .Values.qdrant.service.grpcPort }}
+    targetPort: grpc
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "aura360.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: qdrant
+{{- end }}

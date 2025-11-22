@@ -8,14 +8,20 @@ def _has_valid_bearer(request) -> bool:
 
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
+        print(f"PERM DEBUG: No Bearer header. Headers: {request.headers}")
         return False
 
     token = auth_header.split(' ', 1)[1].strip()
     if not token:
+        print("PERM DEBUG: Token vacío")
         return False
 
     user = getattr(request, 'user', None)
-    return bool(user and getattr(user, 'is_authenticated', False))
+    is_auth = bool(user and getattr(user, 'is_authenticated', False))
+    if not is_auth:
+        print(f"PERM DEBUG: Usuario no autenticado. User: {user}")
+    
+    return is_auth
 
 
 class SupabaseJWTOptionalPermission(BasePermission):

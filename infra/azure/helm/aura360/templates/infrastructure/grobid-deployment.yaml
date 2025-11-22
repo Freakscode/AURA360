@@ -1,0 +1,49 @@
+{{- if .Values.grobid.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grobid
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- $component := dict "component" "grobid" "Chart" .Chart "Release" .Release "Values" .Values }}
+    {{- include "aura360.componentLabels" $component | nindent 4 }}
+spec:
+  replicas: {{ .Values.grobid.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "aura360.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: grobid
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "aura360.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: grobid
+    spec:
+      containers:
+      - name: grobid
+        image: "{{ .Values.grobid.image.repository }}:{{ .Values.grobid.image.tag }}"
+        imagePullPolicy: {{ .Values.grobid.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.grobid.service.port }}
+          protocol: TCP
+        env:
+        - name: GROBID_OPTS
+          value: "{{ .Values.grobid.env.GROBID_OPTS }}"
+        resources:
+          {{- toYaml .Values.grobid.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /api/isalive
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/isalive
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+{{- end }}

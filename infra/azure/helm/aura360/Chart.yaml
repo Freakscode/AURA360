@@ -1,0 +1,16 @@
+apiVersion: v2
+name: aura360
+description: AURA360 - Holistic Wellness Platform on Azure AKS
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - wellness
+  - healthcare
+  - fastapi
+  - django
+  - angular
+  - qdrant
+maintainers:
+  - name: AURA360 Team
+    email: team@aura360.com
