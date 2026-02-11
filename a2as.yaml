@@ -1,0 +1,912 @@
+manifest:
+  version: "0.1.3"
+  schema: https://a2as.org/cert/schema
+  subject:
+    name: aura360-by-freakscode/aura360
+    source: https://github.com/aura360-by-freakscode/aura360
+    branch: main
+    commit: "dbe7485a"
+    scope: [scripts/convert_manifest_to_pipeline_format.py, services/agents/holistic_agent/__init__.py, services/agents/holistic_agent/agent.py,
+      services/agents/holistic_agent/knowledge.py, services/agents/holistic_agent/mental.py, services/agents/holistic_agent/physical.py,
+      services/agents/holistic_agent/spiritual.py, services/agents/nutritional_agent/agent.py, services/agents/scripts/smoke_retrieval.py,
+      services/agents/services/holistic.py, services/api/scripts/classify_and_prefix_papers.py]
+  issued:
+    by: A2AS.org
+    at: '2026-02-11T17:01:21Z'
+    url: https://a2as.org/certified/agents/aura360-by-freakscode/aura360
+  signatures:
+    digest: sha256:f2yGnRJbFeUMukZcZxBZVf-w48q2n6Lcl0BiDUBhEHQ
+    key: ed25519:VkFO51byEZV7OzCwv8H2X-lwqTFOyOTC3_1y9IDHaJE
+    sig: ed25519:CLz5-ZggPXOZfxNAxQaDwoDc7xXLnzY7WKeeNELG45szu9s4y5cmmSUjwGnQ3tum_k31qxPh9Enwao-dc45TBA
+
+agents:
+  anxiety_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: anxiety_expert
+      description: Coach de regulación emocional frente a ansiedad.
+      instruction: [Detecta desencadenantes de ansiedad y sugiere técnicas de afrontamiento basadas en evidencia.]
+      instance: anxiety_expert
+  anxiety_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: anxiety_expert
+      description: Coach de regulación emocional frente a ansiedad.
+      output_key: anxiety_plan
+      instance: anxiety_expert
+  depression_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: depression_expert
+      description: Acompañante en procesos de depresión y recuperación.
+      instruction: ['Evalúa señales de ánimo bajo y recomienda acciones, rutinas y soportes para promover resiliencia.']
+      instance: depression_expert
+  depression_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: depression_expert
+      description: Acompañante en procesos de depresión y recuperación.
+      output_key: depression_plan
+      instance: depression_expert
+  faith_management_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: faith_management_expert
+      description: Consejero de manejo de fe y espiritualidad práctica.
+      instruction: ['Sugiere rituales, prácticas y perspectivas espirituales que fortalezcan la conexión trascendental del
+          usuario.']
+      instance: faith_management_expert
+  faith_management_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: faith_management_expert
+      description: Consejero de manejo de fe y espiritualidad práctica.
+      instruction: ['Sugiere rituales, prácticas y perspectivas espirituales que fortalezcan la conexión trascendental del
+          usuario.']
+      instance: faith_management_expert
+  fitness_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: fitness_expert
+      description: Coach de entrenamiento físico funcional y periodizado.
+      instruction: ['Diseña planes de entrenamiento adaptados al nivel, objetivos y limitaciones del usuario.']
+      instance: fitness_expert
+  fitness_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: fitness_expert
+      description: Coach de entrenamiento físico funcional y periodizado.
+      instruction: ['Diseña planes de entrenamiento adaptados al nivel, objetivos y limitaciones del usuario.']
+      instance: fitness_expert
+  gut_health_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: gut_health_expert
+      description: Especialista en salud de la microbiota intestinal.
+      instruction: [Analiza síntomas digestivos y recomienda estrategias dietéticas y de estilo de vida para fortalecer la
+          biota intestinal.]
+      instance: gut_health_expert
+  gut_health_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: gut_health_expert
+      description: Especialista en salud de la microbiota intestinal.
+      instruction: [Analiza síntomas digestivos y recomienda estrategias dietéticas y de estilo de vida para fortalecer la
+          biota intestinal.]
+      instance: gut_health_expert
+  holistic_coordinator:
+    type: instance
+    params:
+      name: holistic_coordinator
+      description: Orquestador que paraleliza guardianes y sintetiza conclusiones.
+      sub_agents: [knowledge_retriever, holistic_parallel, holistic_synthesizer]
+  holistic_parallel:
+    type: instance
+    params:
+      name: holistic_parallel
+      description: Ejecuta en paralelo los guardianes físico, mental y espiritual.
+      sub_agents: [physical_guardian, mental_guardian, spiritual_guardian]
+  holistic_synthesizer:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: holistic_synthesizer
+      description: Integra los hallazgos de mente, cuerpo y alma en un plan unificado.
+      instruction: ['Recibes tres planes parciales en estado: physical_plan, mental_plan y spiritual_plan.', Cada uno es un
+          JSON con 'summary' y 'actions'. Devuelve UN SOLO mensaje final, '"spirit": {..}, "next_steps": [str, ...]} donde
+          cada sección sintetiza', exclusivamente la información recibida. No añadas texto fuera del JSON.]
+  ikigai_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: ikigai_expert
+      description: Guía de integración Ikigai.
+      instruction: ['Ayuda a conectar pasiones, talentos, necesidades y recompensas para descubrir el Ikigai personal.']
+      instance: ikigai_expert
+  ikigai_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: ikigai_expert
+      description: Guía de integración Ikigai.
+      instruction: ['Ayuda a conectar pasiones, talentos, necesidades y recompensas para descubrir el Ikigai personal.']
+      instance: ikigai_expert
+  knowledge_retriever:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: knowledge_retriever
+      description: Resume el contexto recuperado desde Qdrant para el resto del pipeline.
+      instruction: ['En session_state[''knowledge_context''] tienes una lista de fragmentos recuperados,', 'cada uno con ''text'',
+          ''score'' y ''metadata''.', 'Devuelve sólo un JSON con el formato {', '"summary": str,', '"chunks": [', '{"text":
+          str, "score": float, "metadata": {...}, "insights": [str, ...]}', '],', '"usage_tips": [str, ...]', '}', '- "summary":
+          síntesis en ≤80 palabras.', '- "chunks": selecciona hasta 3 fragmentos relevantes y resume su aporte.', '- "usage_tips":
+          recomendaciones concretas de cómo usar la información recuperada.']
+      output_key: knowledge_summary
+      before_agent_callback: [KnowledgeRetrievalCallback()]
+  mental_guardian.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: mental_guardian
+      description: Coordinador de bienestar mental y emocional.
+      instruction: [Integra asesorías mentales para planes de apoyo continuo.]
+      sub_agents: [neurodivergence_expert, anxiety_expert, depression_expert]
+      instance: mental_guardian
+  mental_guardian.1:
+    type: instance
+    params:
+      name: mental_guardian
+      description: Coordinador de bienestar mental y emocional.
+      instance: mental_guardian
+      sub_agents: [mental_parallel, mental_synthesizer]
+  mental_parallel:
+    type: instance
+    params:
+      name: mental_parallel
+      description: Recopila análisis neurodivergente, ansiedad y depresión en paralelo.
+      sub_agents: [neurodivergence_expert, anxiety_expert, depression_expert]
+  mental_synthesizer:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: mental_synthesizer
+      description: Sintetiza las recomendaciones mentales en un plan unificado.
+      instruction: ['Recibes los siguientes JSON:', '- Neurodivergencia: {neurodivergence_plan}', '- Ansiedad: {anxiety_plan}',
+        '- Depresión: {depression_plan}', 'Devuelve UN SOLO JSON {"summary": str, "actions": [str, ...]} con máximo', '60
+          palabras en summary y hasta 4 acciones integradas, sin texto adicional.']
+      output_key: mental_plan
+  metabolism_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: metabolism_expert
+      description: Experto en metabolismo energético y termogénesis.
+      instruction: ['Evalúa señales metabólicas y sugiere ajustes en macros, micronutrientes y ritmos de alimentación para
+          optimizar el gasto energético.']
+      instance: metabolism_expert
+  metabolism_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: metabolism_expert
+      description: Experto en metabolismo energético y termogénesis.
+      instruction: ['Evalúa señales metabólicas y sugiere ajustes en macros, micronutrientes y ritmos de alimentación para
+          optimizar el gasto energético.']
+      instance: metabolism_expert
+  neurodivergence_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: neurodivergence_expert
+      description: Especialista en diversidad neurológica y apoyos personalizados.
+      instruction: [Identifica necesidades neurodivergentes y propone adaptaciones contextuales y recursos de acompañamiento.]
+      instance: neurodivergence_expert
+  neurodivergence_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: neurodivergence_expert
+      description: Especialista en diversidad neurológica y apoyos personalizados.
+      output_key: neurodivergence_plan
+      instance: neurodivergence_expert
+  nutrition_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: nutrition_expert
+      description: Especialista en planes alimenticios personalizados.
+      instruction: [Analiza hábitos alimenticios y crea recomendaciones nutricionales equilibradas contextualizadas a objetivos
+          del usuario.]
+      instance: nutrition_expert
+  nutrition_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: nutrition_expert
+      description: Especialista en planes alimenticios personalizados.
+      instruction: [Analiza hábitos alimenticios y crea recomendaciones nutricionales equilibradas contextualizadas a objetivos
+          del usuario.]
+      instance: nutrition_expert
+  physical_guardian.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: physical_guardian
+      description: Coordinador de bienestar físico integral.
+      output_key: physical_plan
+      sub_agents: [nutrition_expert, metabolism_expert, sleep_hygiene_expert, gut_health_expert, fitness_expert]
+      instance: physical_guardian
+  physical_guardian.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: physical_guardian
+      description: Coordinador de bienestar físico integral.
+      instruction: [Orquesta expertos físicos para generar planes holísticos.]
+      instance: physical_guardian
+      sub_agents: [nutrition_expert, metabolism_expert, sleep_hygiene_expert, gut_health_expert, fitness_expert]
+  purpose_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: purpose_expert
+      description: Mentor de descubrimiento de propósito vital.
+      instruction: [Facilita ejercicios de reflexión para clarificar valores y prioridades personales.]
+      instance: purpose_expert
+  purpose_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: purpose_expert
+      description: Mentor de descubrimiento de propósito vital.
+      instruction: [Facilita ejercicios de reflexión para clarificar valores y prioridades personales.]
+      instance: purpose_expert
+  root_agent:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: holistic_coordinator
+      description: Orquestador integral de bienestar físico, mental y espiritual.
+      instruction: ['Recibe objetivos del usuario, delega en guardianes físicos, mentales y espirituales, y consolida planes
+          personalizados equilibrados.']
+      sub_agents: [physical_guardian, mental_guardian, spiritual_guardian]
+  sleep_hygiene_expert.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: sleep_hygiene_expert
+      description: Consultor de higiene del sueño y cronobiología.
+      instruction: ['Identifica factores que afectan la calidad del sueño y propone rutinas, ambientes y microhábitos para
+          mejorar el descanso.']
+      instance: sleep_hygiene_expert
+  sleep_hygiene_expert.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: sleep_hygiene_expert
+      description: Consultor de higiene del sueño y cronobiología.
+      instruction: ['Identifica factores que afectan la calidad del sueño y propone rutinas, ambientes y microhábitos para
+          mejorar el descanso.']
+      instance: sleep_hygiene_expert
+  spiritual_guardian.0:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: spiritual_guardian
+      description: Coordinador de crecimiento espiritual y sentido de vida.
+      output_key: spiritual_plan
+      sub_agents: [purpose_expert, ikigai_expert, faith_management_expert]
+      instance: spiritual_guardian
+  spiritual_guardian.1:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: spiritual_guardian
+      description: Coordinador de crecimiento espiritual y sentido de vida.
+      instruction: [Agrupa las guías espirituales para planes de práctica consciente.]
+      instance: spiritual_guardian
+      sub_agents: [purpose_expert, ikigai_expert, faith_management_expert]
+
+models:
+  gemini-2.5-flash:
+    type: literal
+    agents: [purpose_expert.0, ikigai_expert.0, faith_management_expert.0, spiritual_guardian.0, nutrition_expert.0, metabolism_expert.0,
+      sleep_hygiene_expert.0, gut_health_expert.0, fitness_expert.0, physical_guardian.0, knowledge_retriever, nutrition_expert.1,
+      metabolism_expert.1, sleep_hygiene_expert.1, gut_health_expert.1, fitness_expert.1, physical_guardian.1, neurodivergence_expert.0,
+      anxiety_expert.0, depression_expert.0, mental_guardian.0, purpose_expert.1, ikigai_expert.1, faith_management_expert.1,
+      spiritual_guardian.1, root_agent, holistic_synthesizer, neurodivergence_expert.1, anxiety_expert.1, depression_expert.1,
+      mental_synthesizer]
+
+teams:
+  holistic_coordinator:
+    type: sequential
+    agents: [holistic_coordinator, knowledge_retriever, holistic_parallel, holistic_synthesizer]
+  holistic_parallel:
+    type: parallel
+    agents: [holistic_parallel, physical_guardian, mental_guardian, spiritual_guardian]
+  mental_guardian:
+    type: hierarchy
+    agents: [mental_guardian, neurodivergence_expert, anxiety_expert, depression_expert]
+  mental_guardian.1:
+    type: sequential
+    agents: [mental_guardian.1, mental_parallel, mental_synthesizer]
+  mental_parallel:
+    type: parallel
+    agents: [mental_parallel, neurodivergence_expert, anxiety_expert, depression_expert]
+  physical_guardian:
+    type: hierarchy
+    agents: [physical_guardian, nutrition_expert, metabolism_expert, sleep_hygiene_expert, gut_health_expert, fitness_expert]
+  physical_guardian.1:
+    type: hierarchy
+    agents: [physical_guardian.1, nutrition_expert, metabolism_expert, sleep_hygiene_expert, gut_health_expert, fitness_expert]
+  root_agent:
+    type: hierarchy
+    agents: [root_agent, physical_guardian, mental_guardian, spiritual_guardian]
+  spiritual_guardian:
+    type: hierarchy
+    agents: [spiritual_guardian, purpose_expert, ikigai_expert, faith_management_expert]
+  spiritual_guardian.1:
+    type: hierarchy
+    agents: [spiritual_guardian.1, purpose_expert, ikigai_expert, faith_management_expert]
+
+imports:
+  admin: django.contrib.admin
+  AdviceRequest: services.holistic.AdviceRequest
+  agent: agent
+  AgentExecutionError: exceptions.AgentExecutionError
+  AgentExecutionResult: agent_executor.AgentExecutionResult
+  AgentExecutor: agent_executor.AgentExecutor
+  annotations: __future__.annotations
+  Any: typing.Any
+  APIRouter: fastapi.APIRouter
+  AppUser: users.models.AppUser
+  argparse: argparse
+  asdict: dataclasses.asdict
+  asyncio: asyncio
+  Avg: django.db.models.Avg
+  BaseModel: pydantic.BaseModel
+  BodyActivity: body.models.BodyActivity
+  call_agent_service: holistic.services.call_agent_service
+  ConfigDict: pydantic.ConfigDict
+  Consumer: confluent_kafka.Consumer
+  Count: django.db.models.Count
+  Counter: collections.Counter
+  create_agent_run: holistic.services.create_agent_run
+  dataclass: dataclasses.dataclass
+  datetime: datetime.datetime
+  Depends: fastapi.Depends
+  Dict: typing.Dict
+  EmbeddingConfig: infra.EmbeddingConfig
+  ErrorDetails: exceptions.ErrorDetails
+  fetch_user_profile: holistic.services.fetch_user_profile
+  Field: pydantic.Field
+  field_validator: pydantic.field_validator
+  genai: google.genai
+  genai_types: google.genai.types
+  generate_personalized_report: holistic.reporting.generate_personalized_report
+  get_holistic_service: agents_service.api.dependencies.get_holistic_service
+  get_settings: infra.get_settings
+  get_topic_classifier: topic_classifier.get_topic_classifier
+  GuardianKnowledgeRetriever: guardian_retrieval.GuardianKnowledgeRetriever
+  GuardianRequestHandler: handlers.GuardianRequestHandler
+  hashlib: hashlib
+  holistic_coordinator: holistic_agent.holistic_coordinator
+  HolisticAdviceService: services.holistic.HolisticAdviceService
+  HolisticAdviceView: holistic.views.HolisticAdviceView
+  HolisticAgentProfile: holistic.models.HolisticAgentProfile
+  HolisticAgentRunStatus: holistic.models.HolisticAgentRunStatus
+  HolisticCategory: holistic.models.HolisticCategory
+  HolisticRequest: holistic.models.HolisticRequest
+  HolisticRequestStatus: holistic.models.HolisticRequestStatus
+  include: django.urls.include
+  InMemoryRunner: google.adk.runners.InMemoryRunner
+  IntakeSubmission: holistic.models.IntakeSubmission
+  IntakeSubmissionStatus: holistic.models.IntakeSubmissionStatus
+  Iterable: typing.Iterable
+  json: json
+  JsonResponse: django.http.JsonResponse
+  JSONResponse: fastapi.responses.JSONResponse
+  KafkaError: confluent_kafka.KafkaError
+  knowledge_retriever: knowledge.knowledge_retriever
+  List: typing.List
+  LlmAgent: google.adk.agents.LlmAgent
+  load_environment: infra.env.load_environment
+  logging: logging
+  lru_cache: functools.lru_cache
+  Mapping: typing.Mapping
+  mental_guardian: mental.mental_guardian
+  MoodEntry: holistic.models.MoodEntry
+  MoodLevel: holistic.models.MoodLevel
+  MutableMapping: typing.MutableMapping
+  NutritionLog: body.models.NutritionLog
+  NutritionPlan: body.models.NutritionPlan
+  Optional: typing.Optional
+  os: os
+  ParallelAgent: google.adk.agents.ParallelAgent
+  Path: pathlib.Path
+  path: django.urls.path
+  persist_vector_queries: holistic.services.persist_vector_queries
+  physical_guardian: physical.physical_guardian
+  Producer: confluent_kafka.Producer
+  Q: django.db.models.Q
+  Query: fastapi.Query
+  re: re
+  redis: redis
+  Sequence: typing.Sequence
+  SequentialAgent: google.adk.agents.SequentialAgent
+  ServiceError: services.exceptions.ServiceError
+  ServiceSettings: infra.ServiceSettings
+  settings: django.conf.settings
+  shared_task: celery.shared_task
+  shutil: shutil
+  SleepLog: body.models.SleepLog
+  SnapshotType: holistic.models.SnapshotType
+  SpectacularAPIView: drf_spectacular.views.SpectacularAPIView
+  SpectacularRedocView: drf_spectacular.views.SpectacularRedocView
+  SpectacularSwaggerView: drf_spectacular.views.SpectacularSwaggerView
+  spiritual_guardian: spiritual.spiritual_guardian
+  State: google.adk.sessions.state.State
+  status: fastapi.status
+  sys: sys
+  time: time
+  timedelta: datetime.timedelta
+  TimeframeChoices: holistic.models.TimeframeChoices
+  timezone: django.utils.timezone
+  transaction: django.db.transaction
+  types: google.genai.types
+  UnsupportedCategoryError: exceptions.UnsupportedCategoryError
+  UserContextAggregator: holistic.context_aggregator.UserContextAggregator
+  UserContextSnapshot: holistic.models.UserContextSnapshot
+  UserContextVectorizer: holistic.context_vectorizer.UserContextVectorizer
+  UserProfileExtended: holistic.models.UserProfileExtended
+  uuid4: uuid.uuid4
+  VectorQueryError: exceptions.VectorQueryError
+  VectorQueryRecord: vector_queries.VectorQueryRecord
+  VectorQueryRunner: vector_queries.VectorQueryRunner
+  VectorServiceClient: infra.VectorServiceClient
+  VectorServiceConfig: infra.VectorServiceConfig
+  VectorServiceError: infra.VectorServiceError
+
+functions:
+  __call__:
+    type: sync
+    module: services.agents.holistic_agent.knowledge
+    args: [self]
+    params:
+      returns: None
+  __init__:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self]
+    params:
+      returns: None
+  _build_initial_state:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self, records]
+    params:
+      returns: dict
+  _build_input_context:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self]
+    params:
+      returns: MutableMapping
+  _build_intake_payload:
+    type: sync
+    module: services.api.holistic.tasks
+    args: [submission]
+  _build_prompt:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self]
+    params:
+      returns: str
+  _default_recommendations:
+    type: sync
+    module: services.agents.services.holistic
+    params:
+      returns: list[dict]
+  _ensure_trace_id:
+    type: sync
+    module: services.agents.api.routers.holistic
+    args: [cls, value]
+    params:
+      returns: str
+  _ensure_user_profile:
+    type: sync
+    module: services.agents.api.routers.holistic
+    args: [cls, value]
+    params:
+      returns: dict
+  _extract_recommendations:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self, payload]
+    params:
+      returns: list[dict]
+  _extract_summary:
+    type: sync
+    module: services.agents.services.holistic
+    args: [payload]
+    params:
+      returns: str
+  _extract_user_prompt:
+    type: sync
+    module: services.agents.holistic_agent.knowledge
+    args: [content]
+    params:
+      returns: str
+  _handle_error:
+    type: sync
+    module: services.agents.kafka.consumer
+    args: [self, msg]
+    params:
+      returns: None
+  _holistic_service:
+    type: sync
+    module: services.agents.api.dependencies
+    params:
+      returns: HolisticAdviceService
+  _mark_submission_failed:
+    type: sync
+    module: services.api.holistic.tasks
+    args: [submission, stage, reason]
+  _mood_level_to_spanish:
+    type: sync
+    module: services.api.holistic.context_aggregator
+    args: [level]
+    params:
+      returns: str
+  _normalize_agent_output:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self, payload]
+    params:
+      returns: dict
+  _normalize_category:
+    type: sync
+    module: services.agents.api.routers.holistic
+    args: [cls, value]
+    params:
+      returns: str
+  _print_event:
+    type: sync
+    module: services.agents.scripts.smoke_retrieval
+    args: [event]
+    params:
+      returns: None
+  _process_message:
+    type: sync
+    module: services.agents.kafka.consumer
+    args: [self, msg]
+    params:
+      returns: None
+  _publish_error_response:
+    type: sync
+    module: services.agents.kafka.handlers
+    args: [self, publisher, request_id, trace_id, user_id, guardian_type, error_message, error_type, processing_time_ms]
+    params:
+      returns: None
+  _publish_response:
+    type: sync
+    module: services.agents.kafka.handlers
+    args: [self, publisher, response_event]
+    params:
+      returns: None
+  _run_agent:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self]
+    params:
+      returns: AgentExecutionResult
+  _run_agent_interaction:
+    type: async
+    module: services.agents.scripts.smoke_retrieval
+    args: [runner, session_id, message]
+    params:
+      returns: tuple
+  _run_specialized_vector_query:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self]
+    params:
+      returns: list[VectorQueryRecord]
+  _run_vector_query:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self]
+    params:
+      returns: list[VectorQueryRecord]
+  _select_agent:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self, category]
+    params:
+      returns: AgentDefinition
+  aggregate_body_context:
+    type: sync
+    module: services.api.holistic.context_aggregator
+    args: [self, user_id, timeframe]
+    params:
+      returns: dict
+  aggregate_holistic_context:
+    type: sync
+    module: services.api.holistic.context_aggregator
+    args: [self, user_id, timeframe]
+    params:
+      returns: dict
+  aggregate_mind_context:
+    type: sync
+    module: services.api.holistic.context_aggregator
+    args: [self, user_id, timeframe]
+    params:
+      returns: dict
+  aggregate_soul_context:
+    type: sync
+    module: services.api.holistic.context_aggregator
+    args: [self, user_id]
+    params:
+      returns: dict
+  build_s3_key:
+    type: sync
+    module: services.api.scripts.classify_and_prefix_papers
+    args: [topics, year, pdf_md5, filename]
+    params:
+      returns: str
+  classify_pdf:
+    type: sync
+    module: services.api.scripts.classify_and_prefix_papers
+    args: [client, pdf_path, model]
+    params:
+      returns: dict
+  close:
+    type: sync
+    module: services.agents.kafka.consumer
+    args: [self]
+    params:
+      returns: None
+  convert_manifest_to_pipeline_format:
+    type: sync
+    module: scripts.convert_manifest_to_pipeline_format
+    args: [manifest_path, output_path, base_papers_dir]
+    params:
+      returns: None
+  generate_advice:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self, request]
+    params:
+      returns: dict
+  generate_user_context_snapshot_for_user:
+    type: sync
+    module: services.api.holistic.tasks
+    args: [user_id, snapshot_type, timeframe, vectorize]
+  generate_user_context_snapshots_periodic:
+    type: sync
+    module: services.api.holistic.tasks
+  get_async_advice_status:
+    type: sync
+    module: services.agents.api.routers.holistic
+    args: [request_id, timeout]
+    params:
+      returns: JSONResponse
+  get_holistic_service:
+    type: sync
+    module: services.agents.api.dependencies
+    params:
+      returns: HolisticAdviceService
+  get_kafka_producer:
+    type: sync
+    module: services.agents.api.routers.holistic
+    params:
+      returns: Producer
+  get_redis_client:
+    type: sync
+    module: services.agents.api.routers.holistic
+    params:
+      returns: redis.Redis
+  handle:
+    type: sync
+    module: services.agents.kafka.handlers
+    args: [self, event, publisher]
+    params:
+      returns: None
+  health_check:
+    type: sync
+    module: services.api.config.urls
+    args: [request]
+  holistic_advice_async_endpoint:
+    type: sync
+    module: services.agents.api.routers.holistic
+    args: [payload]
+    params:
+      returns: AsyncAdviceResponsePayload
+  holistic_advice_endpoint:
+    type: sync
+    module: services.agents.api.routers.holistic
+    args: [payload, service]
+    params:
+      returns: AdviceResponsePayload
+  load_env_files:
+    type: sync
+    module: services.api.scripts.classify_and_prefix_papers
+    args: [additional]
+    params:
+      returns: list[Path]
+  main:
+    type: async
+    module: services.agents.scripts.smoke_retrieval
+    params:
+      returns: None
+  md5_file:
+    type: sync
+    module: services.api.scripts.classify_and_prefix_papers
+    args: [path]
+    params:
+      returns: str
+  process_intake_submission:
+    type: sync
+    module: services.api.holistic.tasks
+    args: [submission_id]
+  process_pdf:
+    type: sync
+    module: services.api.scripts.classify_and_prefix_papers
+    args: [client, pdf_path, output_dir, model]
+    params:
+      returns: FileRecord
+  run:
+    type: sync
+    module: services.api.scripts.classify_and_prefix_papers
+    args: [input_dir, output_dir, model]
+    params:
+      returns: list[FileRecord]
+  sanitize:
+    type: sync
+    module: services.api.scripts.classify_and_prefix_papers
+    args: [name]
+    params:
+      returns: str
+  settings:
+    type: sync
+    module: services.agents.services.holistic
+    args: [self]
+    params:
+      returns: ServiceSettings
+  start:
+    type: sync
+    module: services.agents.kafka.consumer
+    args: [self]
+    params:
+      returns: None
+  stop:
+    type: sync
+    module: services.agents.kafka.consumer
+    args: [self]
+    params:
+      returns: None
+  vectorize_pending_snapshots:
+    type: sync
+    module: services.api.holistic.tasks
+    args: [limit]
+  wait_for_file_active:
+    type: sync
+    module: services.api.scripts.classify_and_prefix_papers
+    args: [client, file_obj, timeout, poll]
+
+variables:
+  EMBEDDING_BACKEND:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [args.env_file]
+  EMBEDDING_MODEL:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [args.env_file]
+  GEMINI_API_KEY:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [services.api.scripts.classify_and_prefix_papers]
+  GOOGLE_API_KEY:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [services.api.scripts.classify_and_prefix_papers, args.env_file]
+  KAFKA_BOOTSTRAP_SERVERS:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [args.env_file]
+  REDIS_URL:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [args.env_file]
+  VECTOR_SERVICE_API_KEY:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [args.env_file]
+  VECTOR_SERVICE_COLLECTION_NAME:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [args.env_file]
+  VECTOR_SERVICE_URL:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [args.env_file]
+
+files:
+  .env:
+    type: literal
+    actions: [read]
+    params:
+      caller: [load_env_files]
+  base_papers_dir:
+    type: literal
+    actions: [read]
+    params:
+      caller: [Path('/Users/freakscode/Proyectos/AURA360/tmp/output_refs_flash/papers')]
+  input_dir:
+    type: variable
+    actions: [read]
+    params:
+      caller: [input_dir.iterdir]
+  manifest.json:
+    type: literal
+    actions: [read]
+    params:
+      caller: [main]
+      path: [args.output_dir]
+  manifest_path:
+    type: variable
+    actions: [write, read]
+    params:
+      caller: [open, json.load]
+      alias: [f]
+  output_path:
+    type: variable
+    actions: [write]
+    params:
+      caller: [open]
+      alias: [f]
+  pdf_path:
+    type: variable
+    actions: [read]
+    params:
+      caller: [shutil.copy2]
+  Proyectos/AURA360/tmp/output_refs_flash/categorization_pipeline.json:
+    type: literal
+    actions: [read]
+  Proyectos/AURA360/tmp/output_refs_flash/manifest.json:
+    type: literal
+    actions: [read]
+  Proyectos/AURA360/tmp/output_refs_flash/papers:
+    type: literal
+    actions: [read]
+  script_path:
+    type: variable
+    actions: [read]
+    params:
+      caller: [Path.resolve()]
+  target_path:
+    type: variable
+    actions: [write, read]
+    params:
+      caller: [target_path.parent.mkdir, Path]
